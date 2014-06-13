@@ -53,9 +53,11 @@ class account_fiscal_allocation_rule(osv.Model):
             domain="[('country_id','=',to_shipping_country)]"),
         'company_id': fields.many2one(
             'res.company', 'Company', required=True, select=True),
-        # TODO allow for multiple Allocation Sets
-        'fiscal_allocation_id': fields.many2one(
-             'account.fiscal.allocation', 'Fiscal Allocation Set',
+        'fiscal_allocation_id': fields.many2many(
+             'account.fiscal.allocation',
+             'account_fiscal_allocation_rel',
+             'rule_id', 'allocation_id',
+             'Fiscal Allocation Sets',
              domain="[('company_id','=',company_id)]", select=True),
         # Add available set of fiscal attributes of partners and products.
         # Attributes of Seller are the same as Attributes of Buyer (Attributes of Partner)
@@ -92,7 +94,7 @@ class account_fiscal_allocation_rule(osv.Model):
         'sequence': 10,
     }
 
-    def _map_domain(self, cr, uid, partner, addrs, company,
+    def _map_domain(self, cr, uid, partner, addrs, company, product,
                     context=None, **kwargs):
         if context is None:
             context = {}
@@ -101,6 +103,7 @@ class account_fiscal_allocation_rule(osv.Model):
         from_state = company.partner_id.state_id.id
         # Get values for additional attributes
         from_attribute = company.partner_id.fiscal_attribute_id.id
+        product_attribute = product.fiscal_attribute_id.id
 
         document_date = context.get('date', time.strftime('%Y-%m-%d'))
         use_domain = context.get('use_domain', ('use_sale', '=', True))
@@ -117,11 +120,9 @@ class account_fiscal_allocation_rule(osv.Model):
                   # Set more (custom) attributes here:
                   # TODO Tax Domain
                   '|', ('from_fiscal_attribute_id', '=', False),
-                  ('from_fiscal_attribute_id', '>=', document_date),
-                  '|', ('to_fiscal_attribute_id', '=', False),
-                  ('to_fiscal_attribute_id', '>=', document_date),
+                  ('from_fiscal_attribute_id', '=', from_attribute),
                   '|', ('product_fiscal_attribute_id', '=', False),
-                  ('product_fiscal_attribute_id', '>=', document_date),
+                  ('product_fiscal_attribute_id', '=', product_attribute),
                   ]
         if partner.vat:
             domain += [('vat_rule', 'in', ['with', 'both'])]
@@ -132,12 +133,16 @@ class account_fiscal_allocation_rule(osv.Model):
         for address_type, address in addrs.items():
             key_country = 'to_%s_country' % address_type
             key_state = 'to_%s_state' % address_type
+            key_attribute = 'to_%s_fiscal_attribute_id' % address_type
             to_country = address.country_id.id or False
             domain += ['|', (key_country, '=', to_country),
                        (key_country, '=', False)]
             to_state = address.state_id.id or False
             domain += ['|', (key_state, '=', to_state),
                        (key_state, '=', False)]
+            to_attribute = address.fiscal_attribute_id.id or False
+            domain += ['|', (key_attribute, '=', to_attribute),
+                       (key_attribute, '=', False)]
 
         return domain
 
@@ -147,7 +152,7 @@ class account_fiscal_allocation_rule(osv.Model):
 
     def fiscal_allocation_map(self, cr, uid, partner_id=None,
                             partner_invoice_id=None, partner_shipping_id=None,
-                            company_id=None, context=None, **kwargs):
+                            company_id=None, product_id=None, context=None, **kwargs):
 
         result = {'fiscal_allocation': False}
         if not partner_id or not company_id:
@@ -156,8 +161,12 @@ class account_fiscal_allocation_rule(osv.Model):
         obj_fsc_rule = self.pool.get('account.fiscal.allocation.rule')
         obj_partner = self.pool.get("res.partner")
         obj_company = self.pool.get("res.company")
+        # TODO onchange for product
+        obj_product = self.pool.get("res.product")
+        # TODO get current product_id here as it is not passed, or pass it from some superior call (eg onchange)
         partner = obj_partner.browse(cr, uid, partner_id, context=context)
         company = obj_company.browse(cr, uid, company_id, context=context)
+        product = obj_product.browse(cr, uid, product_id, context=context)
 
         addrs = {}
         if partner_invoice_id:
@@ -178,9 +187,8 @@ class account_fiscal_allocation_rule(osv.Model):
                 cr, uid, partner_shipping_id, context=context)
 
         #Rule based determination
-        # TODO Stock/Puchase/Sale ?
         domain = self._map_domain(
-            cr, uid, partner, addrs, company, context, **kwargs)
+            cr, uid, partner, addrs, company, product, context, **kwargs)
 
         fsc_alloc_id = self.search(cr, uid, domain, context=context)
 
@@ -213,8 +221,11 @@ class account_fiscal_allocation_rule_template(osv.osv):
         'to_shipping_state': fields.many2one(
             'res.country.state', 'Destination State',
             domain="[('country_id','=',to_shipping_country)]"),
-        'fiscal_allocation_id': fields.many2one(
-            'account.fiscal.allocation.template', 'Fiscal Allocation Set'),
+        'fiscal_allocation_id': fields.many2many(
+             'account.fiscal.allocation',
+             'account_fiscal_allocation_rel',
+             'rule_id', 'allocation_id',
+             'Fiscal Allocation Sets',
         # See above for comments
         'from_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Seller',
