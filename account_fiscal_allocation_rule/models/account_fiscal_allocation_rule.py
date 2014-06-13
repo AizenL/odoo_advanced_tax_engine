@@ -2,10 +2,10 @@
 ###############################################################################
 #
 #   account_fiscal_allocation_rule for Odoo
-#   Copyright (C) 2009-TODAY Odoo-Colombia <https://github.com/odoo-colombia>
+#   Copyright (C) 2014-TODAY Odoo-Colombia <https://github.com/odoo-colombia>
 #     @author David ANROLD (El Aleman S.A.S) <david@elaleman.co>
 #     @author Juan Pablo Aries (OpenZIX)
-#   account_fiscal_position_rule for OpenERP
+#   account_fiscal_allocation_rule for OpenERP
 #   Copyright (C) 2009-TODAY Akretion <http://www.akretion.com>
 #     @author Sébastien BEAU <sebastien.beau@akretion.com>
 #     @author Renato Lima <renato.lima@akretion.com>
@@ -36,7 +36,7 @@ class account_fiscal_allocation_rule(osv.Model):
         'name': fields.char('Name', size=64, required=True),
         'description': fields.char('Description', size=128),
         # Set a fiscal domain for narrowing drop down menues later
-        'fiscal_domain_id': fields.many2one('Fiscal Domain', required=True, select=True),
+        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True),
         'from_country': fields.many2one('res.country', 'Country From'),
         'from_state': fields.many2one(
             'res.country.state', 'State From',
@@ -80,9 +80,12 @@ class account_fiscal_allocation_rule(osv.Model):
             'Start Date', help="Starting date for this rule to be valid."),
         'date_end': fields.date(
             'End Date', help="Ending date for this rule to be valid."),
+        # Add optional account replacement on a per invoice line level
         'sequence': fields.integer(
             'Priority', required=True,
-            help='The lowest number will be applied.'),
+            help='Unused, unless you use account replacement. Within a sequence, the rule with '
+                 'the highest sequence AND which has an account replacement defined, will apply '
+                 'accross all fiscal domains will.'),
         'vat_rule': fields.selection(
             [('with', 'With VAT number'),
              ('both', 'With or Without VAT number'),
