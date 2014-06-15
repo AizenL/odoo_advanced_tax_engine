@@ -206,6 +206,10 @@ class AccountFiscalAllocationRule(osv.Model):
 
 AccountFiscalAllocationRule()
 
+# ---------------------------
+# Templates & Wizards Section
+# ---------------------------
+
 
 class AccountFiscalAllocationRuleTemplate(osv.osv):
     _name = "account.fiscal.allocation.rule.template"

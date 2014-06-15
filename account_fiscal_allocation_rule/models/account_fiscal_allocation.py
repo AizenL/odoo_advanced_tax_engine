@@ -28,7 +28,7 @@
 from openerp.osv import fields, osv
 
 
-class AccountFiscalPosition(osv.Model):
+class AccountFiscalAllocation(osv.Model):
     _name = 'account.fiscal.allocation'
     _description = 'Fiscal Allocation Set'
     _columns = {
@@ -37,7 +37,7 @@ class AccountFiscalPosition(osv.Model):
                                  help="By unchecking the active field, you may hide a "
                                       "fiscal position without deleting it."),
         'description': fields.char('Description', size=64),
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True),
+        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
         'company_id': fields.many2one('res.company', 'Company'),
         # 'account_ids': fields.one2many('account.fiscal.position.account', 'position_id', 'Account Mapping'),
         # 'tax_ids': fields.one2many('account.fiscal.position.tax', 'position_id', 'Tax Mapping'),
@@ -92,10 +92,12 @@ class AccountFiscalPosition(osv.Model):
 # Do we logically need any SQL constraints on the many2many relation tables?
 
 
-###
+# ---------------------------
+# Templates & Wizards Section
+# ---------------------------
 
 
-class AccountFiscalPositionTemplate(osv.Model):
+class AccountFiscalAllocationTemplate(osv.Model):
     _name = 'account.fiscal.allocation.template'
     _description = 'Fiscal Allocation Set Template'
     _columns = {
@@ -104,7 +106,7 @@ class AccountFiscalPositionTemplate(osv.Model):
                                  help="By unchecking the active field, "
                                       "you may hide a fiscal position without deleting it."),
         'description': fields.char('Description', size=64),
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True),
+        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
         'company_id': fields.many2one('res.company', 'Company'),
         # 'account_ids': fields.one2many('account.fiscal.position.account', 'position_id', 'Account Mapping'),
         # 'tax_ids': fields.one2many('account.fiscal.position.tax', 'position_id', 'Tax Mapping'),
@@ -148,8 +150,8 @@ class AccountFiscalPositionTemplate(osv.Model):
         return self.name_get(cr, user, ids, context)
 
 
-class WizardAccountProductFiscalAllocation(osv.TransientModel):
-    _name = 'wizard.account.product.fiscal.allocation'
+class WizardAccountFiscalAllocation(osv.TransientModel):
+    _name = 'wizard.account.fiscal.allocation'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company', required=True),
     }
@@ -162,9 +164,9 @@ class WizardAccountProductFiscalAllocation(osv.TransientModel):
         obj_wizard = self.browse(cr, uid, ids[0])
         obj_tax = self.pool.get('account.tax')
         obj_tax_template = self.pool.get('account.tax.template')
-        obj_fa = self.pool.get('account.product.fiscal.allocation')
+        obj_fa = self.pool.get('account.fiscal.allocation')
         obj_fa_template = self.pool.get(
-            'account.product.fiscal.allocation.template')
+            'account.fiscal.allocation.template')
 
         company_id = obj_wizard.company_id.id
         tax_template_ref = {}
