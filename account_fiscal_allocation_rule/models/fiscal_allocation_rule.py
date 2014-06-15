@@ -262,8 +262,8 @@ class AccountFiscalAllocationRuleTemplate(orm.Model):
              ('both', 'With or Without VAT number'),
              ('without', 'Without VAT number')],
             "VAT Rule",
-        help=("Choose if the customer need to have the"
-              " field VAT fill for using this fiscal position")),
+            help=("Choose if the customer need to have the "
+                  "field VAT fill for using this fiscal position")),
     }
     _defaults = {
         'sequence': 10,
