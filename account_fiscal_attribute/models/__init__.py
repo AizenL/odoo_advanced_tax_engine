@@ -1,8 +1,7 @@
 # -*- encoding: utf-8 -*-
 ###############################################################################
 #                                                                             #
-# Copyright (C) 2014                                                          #
-# David Arnold (El Aleman SAS), Hector Ivan Valencia, Juan Pablo Arias        #
+# Copyright (C) 2014  David Arnold (El Aleman SAS)                            #
 #                                                                             #
 # This program is free software: you can redistribute it and/or modify        #
 # it under the terms of the GNU Affero General Public License as published by #
@@ -18,29 +17,4 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.       #
 ###############################################################################
 
-{
-    'name': 'Account Fiscal Attribute & Fiscal Domain',
-    'description': 'Adds fiscal attribute for partner and product (extendable)'
-                   'to base tax allocation on those attributes.'
-                   'Adds fiscal domain for clustering tax '
-                   'calculation into smaller pieces '
-                   '(exampla useage: clustering on per tax basis).',
-    'category': 'Account/Fiscal',
-    'license': 'AGPL-3',
-    'author': 'Juan Pablo Arias',
-    'website': '',
-    'version': '0.1',
-    'depends': [
-        'base',
-        'account',
-    ],
-    'data': [
-        # 'views/res_partner_view.xml',
-    ],
-    'demo': [
-    ],
-    'test': [
-    ],
-    'installable': True,
-    'auto_install': False,
-}
+import account_fiscal_attribute
