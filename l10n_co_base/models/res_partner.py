@@ -50,10 +50,10 @@ class res_partner(orm.Model):
 
     _columns = {
 
-        'city': fields.many2one(
+        'city_id': fields.many2one(
             'res.country.state.city', 'Ciudad',)
     }
-
+    # TODO Copy Method for compatibility with core-field 'city'
     # change several fields based on the city-field.
     # @api.onchange('city')
     def onchange_city(self, cr, uid, ids, city_id, context=None):
