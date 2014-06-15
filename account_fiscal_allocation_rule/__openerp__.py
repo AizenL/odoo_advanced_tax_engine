@@ -27,9 +27,10 @@
               'Hector Ivan Valencia (TIX), '
               'Juan Pablo Arias (OpenZIX)',
     'website': '',
-    'version': '0.1',
+    'version': '0.3',
     'depends': [
         'base',
+        'account',
     ],
     'data': [
         # 'data/res.country.state.csv',
