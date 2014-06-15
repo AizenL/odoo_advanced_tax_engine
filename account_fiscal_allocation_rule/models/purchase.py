@@ -22,7 +22,7 @@
 from osv import osv
 
 
-class purchase_order(osv.Model):
+class PurchaseOrder(osv.Model):
     _inherit = 'purchase.order'
 
     def _fiscal_allocation_map(self, cr, uid, result, **kwargs):
@@ -39,7 +39,7 @@ class purchase_order(osv.Model):
         if not context:
             context = {}
 
-        result = super(purchase_order, self).onchange_partner_id(
+        result = super(PurchaseOrder, self).onchange_partner_id(
             cr, uid, ids, partner_id)
 
         if not partner_id or not company_id:
@@ -55,8 +55,8 @@ class purchase_order(osv.Model):
         return self._fiscal_allocation_map(cr, uid, result, **kwargs)
 
     def onchange_dest_address_id(self, cr, uid, ids, partner_id,
-                                dest_address_id, company_id=None,
-                                context=None, **kwargs):
+                                 dest_address_id, company_id=None,
+                                 context=None, **kwargs):
         if not context:
             context = {}
 

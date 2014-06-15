@@ -3,7 +3,7 @@
 #
 #   account_fiscal_allocation_rule for Odoo
 #   Copyright (C) 2014-TODAY Odoo-Colombia <https://github.com/odoo-colombia>
-#     @author David ANROLD (El Aleman S.A.S) <david@elaleman.co>
+#     @author David Arnold (El Aleman S.A.S) <david@elaleman.co>
 #     @author Juan Pablo Aries (OpenZIX)
 #   account_fiscal_allocation_rule for OpenERP
 #   Copyright (C) 2009-TODAY Akretion <http://www.akretion.com>
@@ -29,13 +29,14 @@
 import time
 from osv import fields, osv
 
-class account_fiscal_allocation_rule(osv.Model):
+
+class AccountFiscalAllocationRule(osv.Model):
     _name = "account.fiscal.allocation.rule"
     _order = 'sequence'
     _columns = {
         'name': fields.char('Name', size=64, required=True),
         'description': fields.char('Description', size=128),
-        # Set a fiscal domain for narrowing drop down menues later
+        # Set a fiscal domain for narrowing drop down menus later
         'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True),
         'from_country': fields.many2one('res.country', 'Country From'),
         'from_state': fields.many2one(
@@ -54,14 +55,14 @@ class account_fiscal_allocation_rule(osv.Model):
         'company_id': fields.many2one(
             'res.company', 'Company', required=True, select=True),
         'fiscal_allocation_id': fields.many2many(
-             'account.fiscal.allocation',
-             'account_fiscal_allocation_rel',
-             'rule_id', 'allocation_id',
-             'Fiscal Allocation Sets',
-             domain="[('company_id','=',company_id)]", select=True),
+            'account.fiscal.allocation',
+            'account_fiscal_allocation_rel',
+            'rule_id', 'allocation_id',
+            'Fiscal Allocation Sets',
+            domain="[('company_id','=',company_id)]", select=True),
         # Add available set of fiscal attributes of partners and products.
         # Attributes of Seller are the same as Attributes of Buyer (Attributes of Partner)
-        # A distinction can be realized easiliy, if it might help reducing complexity
+        # A distinction can be realized easily, if it might help reducing complexity
         'from_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Seller',
             domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
@@ -154,8 +155,8 @@ class account_fiscal_allocation_rule(osv.Model):
         return result
 
     def fiscal_allocation_map(self, cr, uid, partner_id=None,
-                            partner_invoice_id=None, partner_shipping_id=None,
-                            company_id=None, product_id=None, context=None, **kwargs):
+                              partner_invoice_id=None, partner_shipping_id=None,
+                              company_id=None, product_id=None, context=None, **kwargs):
 
         result = {'fiscal_allocation': False}
         if not partner_id or not company_id:
@@ -203,10 +204,10 @@ class account_fiscal_allocation_rule(osv.Model):
 
         return result
 
-account_fiscal_allocation_rule()
+AccountFiscalAllocationRule()
 
 
-class account_fiscal_allocation_rule_template(osv.osv):
+class AccountFiscalAllocationRuleTemplate(osv.osv):
     _name = "account.fiscal.allocation.rule.template"
     _columns = {
         'name': fields.char('Name', size=64, required=True),
@@ -225,10 +226,10 @@ class account_fiscal_allocation_rule_template(osv.osv):
             'res.country.state', 'Destination State',
             domain="[('country_id','=',to_shipping_country)]"),
         'fiscal_allocation_id': fields.many2many(
-             'account.fiscal.allocation',
-             'account_fiscal_allocation_rel',
-             'rule_id', 'allocation_id',
-             'Fiscal Allocation Sets',
+            'account.fiscal.allocation',
+            'account_fiscal_allocation_rel',
+            'rule_id', 'allocation_id',
+            'Fiscal Allocation Sets'),
         # See above for comments
         'from_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Seller',
@@ -253,8 +254,9 @@ class account_fiscal_allocation_rule_template(osv.osv):
             help='The lowest number will be applied.'),
         'vat_rule': fields.selection(
             [('with', 'With VAT number'),
-            ('both', 'With or Without VAT number'),
-            ('without', 'Without VAT number')], "VAT Rule",
+             ('both', 'With or Without VAT number'),
+             ('without', 'Without VAT number')],
+            "VAT Rule",
         help=("Choose if the customer need to have the"
         " field VAT fill for using this fiscal position")),
     }
@@ -264,15 +266,14 @@ class account_fiscal_allocation_rule_template(osv.osv):
     }
 
 
-class wizard_account_fiscal_allocation_rule(osv.TransientModel):
+class WizardAccountFiscalAllocationRule(osv.TransientModel):
     _name = 'wizard.account.fiscal.allocation.rule'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company', required=True),
     }
     defaults = {
         'company_id': lambda self, cr, uid, c:
-            self.pool.get('res.users').browse(
-                cr, uid, [uid], c)[0].company_id.id,
+        self.pool.get('res.users').browse(cr, uid, [uid], c)[0].company_id.id,
     }
 
     def _template_vals(self, cr, uid, template, company_id,
@@ -289,8 +290,8 @@ class wizard_account_fiscal_allocation_rule(osv.TransientModel):
                 'fiscal_allocation_id': fiscal_allocation_ids and fiscal_allocation_ids[0],
                 # Add further template attributes here
                 'from_fiscal_attribute_id': template.from_fiscal_attribute_id.id,
-                'to_fiscal_attribute_id': template.to_fiscal_attribute_id.id
-                'product_fiscal_attribute_id': template.product_fiscal_attribute_id.id
+                'to_fiscal_attribute_id': template.to_fiscal_attribute_id.id,
+                'product_fiscal_attribute_id': template.product_fiscal_attribute_id.id,
                 'use_sale': template.use_sale,
                 'use_invoice': template.use_invoice,
                 'use_purchase': template.use_purchase,
@@ -316,7 +317,7 @@ class wizard_account_fiscal_allocation_rule(osv.TransientModel):
         # TODO fix me doesn't work multi template that have empty fiscal
         # position maybe we should link the rule with the account template
         for far_template in obj_far_temp.browse(
-            cr, uid, far_ids, context=context):
+                cr, uid, far_ids, context=context):
             fa_ids = False
             if far_template.fiscal_allocation_id:
 

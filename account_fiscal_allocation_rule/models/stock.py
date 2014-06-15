@@ -22,7 +22,7 @@
 from osv import osv, fields
 
 
-class stock_picking(osv.Model):
+class StockPicking(osv.Model):
     _inherit = "stock.picking"
     _description = "Picking List"
     _columns = {
@@ -43,7 +43,7 @@ class stock_picking(osv.Model):
     def onchange_partner_in(self, cr, uid, ids, partner_id=None,
                             company_id=None, context=None, **kwargs):
 
-        result = super(stock_picking, self).onchange_partner_in(
+        result = super(StockPicking, self).onchange_partner_in(
             cr, uid, partner_id, context)
 
         if not result:
@@ -58,18 +58,17 @@ class stock_picking(osv.Model):
             cr, uid, [partner_id], ['delivery'])['delivery']
 
         kwargs.update({
-           'partner_id': partner_id,
-           'partner_invoice_id': partner_invoice_id,
-           'partner_shipping_id': partner_shipping_id,
-           'company_id': company_id,
-           'context': context,
+            'partner_id': partner_id,
+            'partner_invoice_id': partner_invoice_id,
+            'partner_shipping_id': partner_shipping_id,
+            'company_id': company_id,
+            'context': context,
         })
         return self._fiscal_position_map(cr, uid, result, **kwargs)
 
     def _prepare_invoice(self, cr, uid, picking, partner, inv_type,
                          journal_id, context=None):
-        result = super(stock_picking, self)._prepare_invoice(cr, uid, picking,
-            partner, inv_type, journal_id, context)
-        result['fiscal_position'] = picking.fiscal_position and \
-        picking.fiscal_position.id
+        result = super(StockPicking, self)._prepare_invoice(cr, uid, picking,
+                                                            partner, inv_type, journal_id, context)
+        result['fiscal_position'] = picking.fiscal_position and picking.fiscal_position.id
         return result

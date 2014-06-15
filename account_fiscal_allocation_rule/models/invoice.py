@@ -23,7 +23,7 @@
 from osv import osv
 
 
-class account_invoice(osv.Model):
+class AccountInvoice(osv.Model):
     _inherit = 'account.invoice'
 
     def _fiscal_allocation_map(self, cr, uid, result, context=None, **kwargs):
@@ -35,12 +35,12 @@ class account_invoice(osv.Model):
         fa_rule_obj = self.pool.get('account.fiscal.allocation.rule')
         return fa_rule_obj.apply_fiscal_mapping(cr, uid, result, **kwargs)
 
-    def onchange_partner_id(self, cr, uid, ids, type, partner_id,
+    def onchange_partner_id(self, cr, uid, ids, p_type, partner_id,
                             date_invoice=False, payment_term=False,
                             partner_bank_id=False, company_id=False):
 
-        result = super(account_invoice, self).onchange_partner_id(
-            cr, uid, ids, type, partner_id, date_invoice, payment_term,
+        result = super(AccountInvoice, self).onchange_partner_id(
+            cr, uid, ids, p_type, partner_id, date_invoice, payment_term,
             partner_bank_id, company_id)
 
         if not partner_id or not company_id:
@@ -50,10 +50,10 @@ class account_invoice(osv.Model):
             cr, uid, result, partner_id=partner_id,
             partner_invoice_id=partner_id, company_id=company_id)
 
-    def onchange_company_id(self, cr, uid, ids, company_id, partner_id, type,
+    def onchange_company_id(self, cr, uid, ids, company_id, partner_id, c_type,
                             invoice_line, currency_id):
-        result = super(account_invoice, self).onchange_company_id(
-            cr, uid, ids, company_id, partner_id, type, invoice_line,
+        result = super(AccountInvoice, self).onchange_company_id(
+            cr, uid, ids, company_id, partner_id, c_type, invoice_line,
             currency_id)
 
         if not partner_id or not company_id:

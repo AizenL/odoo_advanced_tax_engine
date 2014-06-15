@@ -3,7 +3,7 @@
 #
 #   account_fiscal_allocation_rule for Odoo
 #   Copyright (C) 2014-TODAY Odoo-Colombia <https://github.com/odoo-colombia>
-#     @author David ANROLD (El Aleman S.A.S) <david@elaleman.co>
+#     @author David Arnold (El Aleman S.A.S) <david@elaleman.co>
 #     @author Juan Pablo Aries (OpenZIX)
 #   Copyright (C) 2010-TODAY Akretion <http://www.akretion.com>
 #     @author Renato Lima <renato.lima@akretion.com>
@@ -24,19 +24,20 @@
 #
 ###############################################################################
 
-from operator import itemgetter
-import time
 
 from openerp.osv import fields, osv
 
-class account_fiscal_position(osv.Model):
+
+class AccountFiscalPosition(osv.Model):
     _name = 'account.fiscal.allocation'
     _description = 'Fiscal Allocation Set'
     _columns = {
         'name': fields.char('Fiscal Allocation', size=64, required=True),
-        'active': fields.boolean('Active', help="By unchecking the active field, you may hide a fiscal position without deleting it."),
+        'active': fields.boolean('Active',
+                                 help="By unchecking the active field, you may hide a "
+                                      "fiscal position without deleting it."),
         'description': fields.char('Description', size=64),
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True)
+        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True),
         'company_id': fields.many2one('res.company', 'Company'),
         # 'account_ids': fields.one2many('account.fiscal.position.account', 'position_id', 'Account Mapping'),
         # 'tax_ids': fields.one2many('account.fiscal.position.tax', 'position_id', 'Tax Mapping'),
@@ -47,7 +48,7 @@ class account_fiscal_position(osv.Model):
         'purchase_tax_ids': fields.many2many(
             'account.tax', 'fiscal_allocation_purchase_tax_rel',
             'fiscal_allocation_id', 'tax_id', 'Applicable Purchase Taxes',
-            domain="[('type_tax_use', '!=', 'sale'),('fiscal_domain_id', '=', fiscal_domain_id)]")
+            domain="[('type_tax_use', '!=', 'sale'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
         'note': fields.text('Notes'),
     }
 
@@ -73,7 +74,7 @@ class account_fiscal_position(osv.Model):
                     result.add(tax.id)
         return list(result)
 
-    # Following out-commented code: Left over from Core Code. If acocunt mapping should be necesary,
+    # Following out-commented code: Left over from Core Code. If account mapping should be necessary,
     # this should be on the invoice line (not the invoice).
     # It should be applied (as being unique per line item) by the latest sequence
     # of the fiscal allocation rule (which must be adapted for account mapping)
@@ -94,14 +95,16 @@ class account_fiscal_position(osv.Model):
 ###
 
 
-class account_fiscal_position_template(osv.Model):
+class AccountFiscalPositionTemplate(osv.Model):
     _name = 'account.fiscal.allocation.template'
     _description = 'Fiscal Allocation Set Template'
     _columns = {
         'name': fields.char('Fiscal Allocation', size=64, required=True),
-        'active': fields.boolean('Active', help="By unchecking the active field, you may hide a fiscal position without deleting it."),
+        'active': fields.boolean('Active',
+                                 help="By unchecking the active field, "
+                                      "you may hide a fiscal position without deleting it."),
         'description': fields.char('Description', size=64),
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True)
+        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True),
         'company_id': fields.many2one('res.company', 'Company'),
         # 'account_ids': fields.one2many('account.fiscal.position.account', 'position_id', 'Account Mapping'),
         # 'tax_ids': fields.one2many('account.fiscal.position.tax', 'position_id', 'Tax Mapping'),
@@ -112,7 +115,7 @@ class account_fiscal_position_template(osv.Model):
         'purchase_tax_ids': fields.many2many(
             'account.tax', 'fiscal_allocation_purchase_tax_rel',
             'fiscal_allocation_id', 'tax_id', 'Applicable Purchase Taxes',
-            domain="[('type_tax_use', '!=', 'sale'),('fiscal_domain_id', '=', fiscal_domain_id)]")
+            domain="[('type_tax_use', '!=', 'sale'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
         'note': fields.text('Notes'),
     }
 
@@ -145,15 +148,14 @@ class account_fiscal_position_template(osv.Model):
         return self.name_get(cr, user, ids, context)
 
 
-class wizard_account_product_fiscal_allocation(osv.TransientModel):
+class WizardAccountProductFiscalAllocation(osv.TransientModel):
     _name = 'wizard.account.product.fiscal.allocation'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company', required=True),
     }
     _defaults = {
         'company_id': lambda self, cr, uid, c:
-            self.pool.get('res.users').browse(
-                cr, uid, [uid], c)[0].company_id.id,
+        self.pool.get('res.users').browse(cr, uid, [uid], c)[0].company_id.id,
     }
 
     def action_create(self, cr, uid, ids, context=None):
@@ -181,7 +183,7 @@ class wizard_account_product_fiscal_allocation(osv.TransientModel):
             cr, uid, [], context=context)
 
         for fclass_template in obj_fa_template.browse(
-            cr, uid, fclass_ids_template, context=context):
+                cr, uid, fclass_ids_template, context=context):
 
             fclass_id = obj_fa.search(
                 cr, uid, [('name', '=', fclass_template.name)],
@@ -190,7 +192,7 @@ class wizard_account_product_fiscal_allocation(osv.TransientModel):
             if not fclass_id:
                 t_sale_tax_ids = []
                 for tax in fclass_template.sale_tax_ids:
-                    T_sale_tax_ids.append(tax_template_ref[tax.id])
+                    t_sale_tax_ids.append(tax_template_ref[tax.id])
 
                 t_purchase_tax_ids = []
                 for tax in fclass_template.purchase_tax_ids:
