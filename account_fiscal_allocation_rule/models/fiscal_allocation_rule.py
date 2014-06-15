@@ -190,7 +190,7 @@ class AccountFiscalAllocationRule(orm.Model):
             addrs['shipping'] = obj_partner.browse(
                 cr, uid, partner_shipping_id, context=context)
 
-        #Rule based determination
+        # Rule based determination
         domain = self._map_domain(
             cr, uid, partner, addrs, company, product, context, **kwargs)
 
@@ -263,7 +263,7 @@ class AccountFiscalAllocationRuleTemplate(orm.Model):
              ('without', 'Without VAT number')],
             "VAT Rule",
         help=("Choose if the customer need to have the"
-        " field VAT fill for using this fiscal position")),
+              " field VAT fill for using this fiscal position")),
     }
     _defaults = {
         'sequence': 10,

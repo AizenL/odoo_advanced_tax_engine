@@ -56,6 +56,7 @@ class res_partner(orm.Model):
     # TODO Copy Method for compatibility with core-field 'city'
     # change several fields based on the city-field.
     # @api.onchange('city')
+
     def onchange_city(self, cr, uid, ids, city_id, context=None):
         if city_id:
             state_id = self.pool['res.country.state.city'].browse(cr, uid, city_id, context).state_id.id
