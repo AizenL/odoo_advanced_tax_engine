@@ -37,7 +37,7 @@ class AccountFiscalAllocationRule(orm.Model):
         'name': fields.char('Name', size=64, required=True),
         'description': fields.char('Description', size=128),
         # Set a fiscal domain for narrowing drop down menus later
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain.id', 'Fiscal Domain', required=True, select=True),
+        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
         'from_country': fields.many2one('res.country', 'Country From'),
         'from_state': fields.many2one(
             'res.country.state', 'State From',
@@ -216,6 +216,7 @@ class AccountFiscalAllocationRuleTemplate(orm.Model):
     _columns = {
         'name': fields.char('Name', size=64, required=True),
         'description': fields.char('Description', size=128),
+        # TODO add fiscal domain ? also in wizard?
         'from_country': fields.many2one('res.country', 'Country Form'),
         'from_state': fields.many2one(
             'res.country.state', 'State From',
