@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+		<record model="ir.ui.view" id="fiscal_allocation_normal_form_view_form">
+			<field name="name">fiscal_allocation_normal_form_view_form</field>
+			<field name="model">account.fiscal.allocation</field>
+			<field name="arch" type="xml">
+				<form string="Fiscal Allocation">
+					<field name="name" />
+                    <field name="fiscal_domain_id"/>
+					<field name="company_id" />
+					<field name="description" />
+					<newline />
+					<separator string="Sale Taxes" colspan="2" />
+					<separator string="Purchase Taxes" colspan="2" />
+					<field colspan="2" nolabel="1" name="sale_tax_ids" />
+					<field colspan="2" nolabel="1" name="purchase_tax_ids" />
+                    <field name="note" />
+				</form>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="fiscal_allocation_normal_form_view_tree">
+			<field name="name">fiscal_allocation_normal_form_view_tree</field>
+			<field name="model">account.fiscal.allocation</field>
+			<field name="arch" type="xml">
+				<tree string="Fiscal allocation">
+					<field name="name" />
+                    <field name="fiscal_domain_id"/>
+					<field name="description" />
+					<field name="company_id" />
+				</tree>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="fiscal_allocation_template_normal_form_view_form">
+			<field name="name">fiscal_allocation_template_normal_form_view_form</field>
+			<field name="model">account.fiscal.allocation.template</field>
+			<field name="arch" type="xml">
+				<form string="Fiscal Allocation Template">
+					<field name="name" />
+					<field colspan="4" name="description" />
+					<newline />
+					<separator string="Sale Taxes" colspan="2" />
+					<separator string="Purchase Taxes" colspan="2" />
+					<field colspan="2" nolabel="1" name="sale_tax_ids" />
+					<field colspan="2" nolabel="1" name="purchase_tax_ids" />
+				</form>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="fiscal_allocation_template_normal_form_view_tree">
+			<field name="name">fiscal_allocation_normal_form_view_tree</field>
+			<field name="model">account.fiscal.allocation.template</field>
+			<field name="arch" type="xml">
+				<tree string="Fiscal allocation Template">
+					<field name="name" />
+                    <field name="fiscal_domain_id"/>
+					<field name="description" />
+				</tree>
+			</field>
+		</record>
+
+		<!-- Wizard Fiscal Allocation -->
+		<record id="view_wizard_account_fiscal_allocation" model="ir.ui.view">
+			<field name="name">Generate Product Fiscal allocation from Templates</field>
+			<field name="model">wizard.account.fiscal.allocation</field>
+			<field name="arch" type="xml">
+				<form string="Generate Fiscal Allocation from Templates" version="7.0">
+					<group string="This will automatically configure all product fiscal allocation">
+						<field name="company_id" />
+					</group>
+					<footer>
+						<button name="action_create" string="Create" type="object" class="oe_highlight" /> ou
+						<button special="cancel" string="Cancel" type="object" class="oe_link" />
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record id="action_wizard_account_fiscal_allocation" model="ir.actions.act_window">
+			<field name="name">Generate Product Fiscal Allocation from Templates</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">wizard.account.fiscal.allocation</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">form</field>
+			<field name="target">new</field>
+		</record>
+
+
+		<menuitem parent="account.account_template_folder" action="action_wizard_account_fiscal_allocation" id="menu_wizard_account_fiscal_allocation" />
+
+		<record id="fiscal_allocations_action" model="ir.actions.act_window">
+			<field name="name">Product Fiscal Allocations</field>
+			<field name="res_model">account.fiscal.allocation</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+
+		<record id="fiscal_allocations_template_action"	model="ir.actions.act_window">
+			<field name="name">Product Fiscal Allocations Template</field>
+			<field name="res_model">account.fiscal.allocation.template</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+
+		<menuitem id="menu_fiscal_allocations" action="fiscal_allocations_action" name="Product Fiscal allocations" parent="account.menu_finance_accounting" />
+
+		<menuitem action="fiscal_allocations_template_action" id="menu_fiscal_allocations_template" parent="account.account_template_folder" sequence="22" />
+	</data>
+</openerp>
