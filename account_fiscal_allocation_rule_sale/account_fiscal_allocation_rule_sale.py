@@ -23,10 +23,10 @@
 #
 ###############################################################################
 
-from openerp.osv import osv
+from openerp.osv import orm
 
 
-class SaleOrder(osv.Model):
+class SaleOrder(orm.Model):
     _inherit = 'sale.order'
 
     def _fiscal_allocation_map(self, cr, uid, result, **kwargs):

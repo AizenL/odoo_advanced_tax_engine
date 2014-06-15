@@ -20,10 +20,10 @@
 #
 ###############################################################################
 
-from openerp.osv import osv
+from openerp.osv import orm
 
 
-class AccountInvoice(osv.Model):
+class AccountInvoice(orm.Model):
     _inherit = 'account.invoice'
 
     def _fiscal_allocation_map(self, cr, uid, result, context=None, **kwargs):

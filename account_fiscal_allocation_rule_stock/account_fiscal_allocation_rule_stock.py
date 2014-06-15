@@ -19,10 +19,10 @@
 #
 ###############################################################################
 
-from openerp.osv import osv, fields
+from openerp.osv import orm, fields
 
 
-class StockPicking(osv.Model):
+class StockPicking(orm.Model):
     _inherit = "stock.picking"
     _description = "Picking List"
     _columns = {

@@ -25,10 +25,10 @@
 ###############################################################################
 
 
-from openerp.osv import fields, osv
+from openerp.osv import fields, orm
 
 
-class AccountFiscalAllocation(osv.Model):
+class AccountFiscalAllocation(orm.Model):
     _name = 'account.fiscal.allocation'
     _description = 'Fiscal Allocation Set'
     _columns = {
@@ -97,7 +97,7 @@ class AccountFiscalAllocation(osv.Model):
 # ---------------------------
 
 
-class AccountFiscalAllocationTemplate(osv.Model):
+class AccountFiscalAllocationTemplate(orm.Model):
     _name = 'account.fiscal.allocation.template'
     _description = 'Fiscal Allocation Set Template'
     _columns = {
@@ -150,7 +150,7 @@ class AccountFiscalAllocationTemplate(osv.Model):
         return self.name_get(cr, user, ids, context)
 
 
-class WizardAccountFiscalAllocation(osv.TransientModel):
+class WizardAccountFiscalAllocation(orm.TransientModel):
     _name = 'wizard.account.fiscal.allocation'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company', required=True),

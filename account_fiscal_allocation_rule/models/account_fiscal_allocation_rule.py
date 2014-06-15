@@ -27,10 +27,10 @@
 ###############################################################################
 
 import time
-from openerp.osv import fields, osv
+from openerp.osv import fields, orm
 
 
-class AccountFiscalAllocationRule(osv.Model):
+class AccountFiscalAllocationRule(orm.Model):
     _name = "account.fiscal.allocation.rule"
     _order = 'sequence'
     _columns = {
@@ -211,7 +211,7 @@ AccountFiscalAllocationRule()
 # ---------------------------
 
 
-class AccountFiscalAllocationRuleTemplate(osv.osv):
+class AccountFiscalAllocationRuleTemplate(orm.Model):
     _name = "account.fiscal.allocation.rule.template"
     _columns = {
         'name': fields.char('Name', size=64, required=True),
@@ -270,7 +270,7 @@ class AccountFiscalAllocationRuleTemplate(osv.osv):
     }
 
 
-class WizardAccountFiscalAllocationRule(osv.TransientModel):
+class WizardAccountFiscalAllocationRule(orm.TransientModel):
     _name = 'wizard.account.fiscal.allocation.rule'
     _columns = {
         'company_id': fields.many2one('res.company', 'Company', required=True),
