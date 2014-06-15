@@ -31,6 +31,7 @@
     'depends': [
         'base',
         'account',
+        'account_fiscal_attribute',
     ],
     'data': [
         # 'data/res.country.state.csv',
