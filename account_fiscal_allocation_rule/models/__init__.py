@@ -17,6 +17,6 @@
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.        #
 ###############################################################################
 
-import account_fiscal_allocation
-import account_fiscal_allocation_rule
-import account_fiscal_allocation_rule_invoice
+import fiscal_allocation
+import fiscal_allocation_rule
+import fiscal_allocation_rule_invoice
