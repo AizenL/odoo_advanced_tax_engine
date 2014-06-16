@@ -18,4 +18,6 @@
 ###############################################################################
 
 from . import \
-    account_fiscal_attribute
+    account_fiscal_attribute, \
+    account_fiscal_domain, \
+    account_tax
