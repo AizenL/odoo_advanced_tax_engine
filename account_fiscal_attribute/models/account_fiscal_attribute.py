@@ -27,8 +27,9 @@ class FiscalAttributeUse(orm.Model):
     _name = "account.fiscal.attribute.use"
 
     _columns = {
-        # TODO Company_Id ?
-        'code': fields.char('code', size=25, required=True),
+        'name': fields.char('name', size=25, required=True),
+        'company_id': fields.many2one('res.company', 'Company'),
+        'note': fields.text('note'),
         'active': fields.boolean('active'),
     }
 
@@ -37,9 +38,9 @@ class AccountFiscalAttribute(orm.Model):
     _name = 'account.fiscal.attribute'
 
     _columns = {
-        # TODO Company_Id ? (!)
-        'code': fields.char('code', size=25, required=True),
-        'name': fields.char('code', size=50, required=True),
+        'name': fields.char('name', size=25, required=True),
+        'description': fields.char('description', size=50, required=True),
+        'company_id': fields.many2one('res.company', 'Company'),
         'note': fields.text('note'),
         'active': fields.boolean('active'),
         'attribute_use_id': fields.many2one(

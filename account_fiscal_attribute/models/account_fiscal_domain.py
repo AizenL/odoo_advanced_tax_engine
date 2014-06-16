@@ -27,8 +27,8 @@ class FiscalDomain(orm.Model):
     _name = "account.fiscal.domain"
 
     _columns = {
-        # TODO Company_Id ?
-        'code': fields.char('code', size=25, required=True),
+        'name': fields.char('name', size=25, required=True),
+        'company_id': fields.many2one('res.company', 'Company'),
         'note': fields.text('note'),
         'active': fields.boolean('active'),
         # TODO account_fiscal_allocation_set_id = fields.many2many

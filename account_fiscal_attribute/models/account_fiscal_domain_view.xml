@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+		<record model="ir.ui.view" id="account_fiscal_domain_view_form">
+			<field name="name">account.fiscal.domain.view.form</field>
+			<field name="model">account.fiscal.domain</field>
+			<field name="arch" type="xml">
+				<form string="Fiscal Domain">
+					<field name="name" />
+					<field name="company_id" />
+                    <field name="active" />
+					<field name="note" />
+				</form>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="account_fiscal_domain_view_tree">
+			<field name="name">account.fiscal.domain.view.tree</field>
+			<field name="model">account.fiscal.domain</field>
+			<field name="arch" type="xml">
+				<tree string="Fiscal Domain">
+					<field name="name" />
+					<field name="company_id" />
+                    <field name="active" />
+				</tree>
+			</field>
+		</record>
+<!-- Once templates included, uncomment
+		<record model="ir.ui.view" id="account_fiscal_domain_template_view_form">
+			<field name="name">account.fiscal.domain.template.view.form</field>
+			<field name="model">account.fiscal.domain.template</field>
+			<field name="arch" type="xml">
+				<form string="Fiscal Domain">
+					<field name="name" />
+					<field name="note" />
+				</form>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="account_fiscal_domain_template_view_tree">
+			<field name="name">account.fiscal.domain.template.view.tree</field>
+			<field name="model">account.fiscal.domain.template</field>
+			<field name="arch" type="xml">
+				<tree string="Fiscal Domain">
+					<field name="name" />
+					<field name="note" />
+				</tree>
+			</field>
+		</record>
+-->
+		<!-- Wizard product fiscal classification -->
+<!-- Once wizard included, uncomment
+		<record id="view_wizard_account_fiscal_domain" model="ir.ui.view">
+			<field name="name">Generate Fiscal Domains from Templates</field>
+			<field name="model">wizard.account.fiscal.domain</field>
+			<field name="arch" type="xml">
+				<form string="Generate Fiscal Domains from Templates" version="8.0">
+					<group string="This will automatically configure all fiscal domains">
+						<field name="company_id" />
+					</group>
+					<footer>
+						<button name="action_create" string="Create" type="object" class="oe_highlight" /> ou
+						<button special="cancel" string="Cancel" type="object" class="oe_link" />
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<record id="action_wizard_account_fiscal_domain" model="ir.actions.act_window">
+			<field name="name">Generate Fiscal Domains from Templates</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">wizard.account.fiscal.domain</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">form</field>
+			<field name="target">new</field>
+		</record>
+
+
+		<menuitem parent="account.account_template_folder" action="action_wizard_account_fiscal_domain" id="menu_wizard_account_fiscal_domain" />
+-->
+		<record id="account_fiscal_domain_action" model="ir.actions.act_window">
+			<field name="name">Fiscal Domains</field>
+			<field name="res_model">account.fiscal.domain</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+<!-- Once templates included, uncomment
+		<record id="account_fiscal_domain_template_action"	model="ir.actions.act_window">
+			<field name="name">Fiscal Domains Template</field>
+			<field name="res_model">account.fiscal.domain.template</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+-->
+		<menuitem id="menu_account_fiscal_domain" action="account_fiscal_domain_action"  parent="account.menu_finance_accounting" />
+<!-- Once templates included, uncomment
+		<menuitem id="menu_account_fiscal_domain_template" action="account_fiscal_domain_template_action" parent="account.account_template_folder" sequence="22" />
+-->
+	</data>
+</openerp>

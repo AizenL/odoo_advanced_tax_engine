@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+        <!-- Tax -->
+        <record id="account_tax_tree_inherited_account_fiscal_domain" model="ir.ui.view">
+            <field name="name">account.tax.tree.inherited.account.fiscal.domain</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form" />
+            <field name="arch" type="xml">
+				<field name="name" position="after">
+					<field name="fiscal_domain_id" />
+				</field>
+			</field>
+        </record>
+
+        <record id="view_account_tax_search_inherited_account_fiscal_domain" model="ir.ui.view">
+            <field name="name">account.tax.search.inherited.account.fiscal.domain</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_account_tax_search" />
+            <field name="arch" type="xml">
+                <data>
+                    <field name="company_id" position="after">
+					    <field name="fiscal_domain_id" groups="account.fiscal.domain"/>
+				    </field>
+                    <filter string="Company" position="after">
+                        <filter string="Fiscal Domain" domain="[]" context="{'group_by':'fiscal_domain_id'}"/>
+				    </filter>
+                </data>
+            </field>
+        </record>
+
+        <record id="view_tax_form_inherited_account_fiscal_domain" model="ir.ui.view">
+            <field name="name">account.tax.form.inherited.account.fiscal.domain</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form" />
+            <field name="arch" type="xml">
+				<field name="type_tax_use" position="after">
+					<field name="fiscal_domain_id" />
+				</field>
+			</field>
+        </record>
+
+    </data>
+</openerp>
