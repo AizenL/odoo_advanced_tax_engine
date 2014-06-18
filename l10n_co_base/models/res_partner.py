@@ -53,6 +53,7 @@ class res_partner(orm.Model):
         'city_id': fields.many2one(
             'res.country.state.city', 'Ciudad',)
     }
+
     # TODO Copy Method for compatibility with core-field 'city'
     # change several fields based on the city-field.
     # @api.onchange('city')
