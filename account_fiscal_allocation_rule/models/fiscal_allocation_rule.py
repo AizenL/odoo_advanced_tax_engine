@@ -106,8 +106,8 @@ class AccountFiscalAllocationRule(orm.Model):
         from_country = company.partner_id.country_id.id
         from_state = company.partner_id.state_id.id
         # Get values for additional attributes
-        from_attribute = company.partner_id.fiscal_attribute_id.id
-        product_attribute = product.fiscal_attribute_id.id
+        from_attribute = company.partner_id.property_fiscal_attribute.id
+        product_attribute = product.property_fiscal_attribute.id
 
         document_date = context.get('date', time.strftime('%Y-%m-%d'))
         use_domain = context.get('use_domain', ('use_sale', '=', True))
@@ -166,7 +166,7 @@ class AccountFiscalAllocationRule(orm.Model):
         obj_partner = self.pool.get("res.partner")
         obj_company = self.pool.get("res.company")
         # TODO onchange for product
-        obj_product = self.pool.get("res.product")
+        obj_product = self.pool.get("product.product")
         # TODO get current product_id here as it is not passed, or pass it from some superior call (eg onchange)
         partner = obj_partner.browse(cr, uid, partner_id, context=context)
         company = obj_company.browse(cr, uid, company_id, context=context)
