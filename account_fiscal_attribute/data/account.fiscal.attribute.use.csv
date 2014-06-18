@@ -1,0 +1,3 @@
+id,name,company_id:id,note,active
+fisc_attr_use_1,partner,,"This is the label for attributes that can be assigned to a partner",
+fisc_attr_use_2,product,,"This is the label for attributes that can be assigned to a product",

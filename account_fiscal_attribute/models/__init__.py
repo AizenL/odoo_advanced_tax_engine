@@ -20,4 +20,6 @@
 from . import \
     account_fiscal_attribute, \
     account_fiscal_domain, \
-    account_tax
+    account_tax, \
+    partner, \
+    product

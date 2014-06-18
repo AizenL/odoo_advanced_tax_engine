@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_fiscal_attribute,"account.fiscal.attribute all",model_account_fiscal_attribute,,1,1,1,1
+access_account_fiscal_domain,"account.fiscal.domain all",model_account_fiscal_domain,,1,1,1,1
+access_account_fiscal_attribute_use,"account.fiscal.attribute_use all",model_account_fiscal_attribute_use,,1,1,1,1

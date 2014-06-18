@@ -23,7 +23,6 @@ from openerp.osv import orm, fields
 
 
 class FiscalDomain(orm.Model):
-    # TODO check, if this naming style is like contenion or fiscal_domain (as before)
     _name = "account.fiscal.domain"
 
     _columns = {

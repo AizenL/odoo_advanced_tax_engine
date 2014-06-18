@@ -1,0 +1,24 @@
+<openerp>
+    <data>
+
+        <record id="view_partner_fiscal_property_form" model="ir.ui.view">
+            <field name="name">res.partner.inherit.fiscal.property.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_partner_property_form"/>
+            <field name="arch" type="xml">
+                <page name="accounting" position="after" version="7.0">
+                    <page string="Fiscal Properties" col="4" name="fiscal_properties" attrs="{'invisible': [('is_company','=',False),('parent_id','!=',False)]}" groups="account.group_account_user">
+                        <properties/>
+                        <!-- <field name="property_fiscal_attribute" widget="selection"/> "field does not exist?!?!?" -->
+                    </page>
+                    <page string="Fiscal Properties" name="fiscal_properties_disabled" attrs="{'invisible': ['|',('is_company','=',True),('parent_id','=',False)]}" groups="account.group_account_user">
+                        <div>
+                            <p>Fiscal-Properties-related settings are managed on <button name="open_commercial_entity" type="object" string="the parent company" class="oe_link"/></p>
+                        </div>
+                    </page>
+                </page>
+            </field>
+        </record>
+
+    </data>
+</openerp>

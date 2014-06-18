@@ -35,7 +35,13 @@
         'account',
     ],
     'data': [
-        # 'views/res_partner_view.xml',
+        'data/account.fiscal.attribute.use.csv',
+        'security/ir.model.access.csv', # debe ser aconditionado por un experto
+        'views/partner_view.xml'
+        # 'views/product_view.xml', - sin contenido intelligente
+        # 'views/account_fiscal_attribute_view.xml', - base para depurar
+        # 'views/account_fiscal_domain_view.xml', - base para depurar
+        # 'views/account_tax_view.xml' - base para depurar
     ],
     'demo': [
     ],

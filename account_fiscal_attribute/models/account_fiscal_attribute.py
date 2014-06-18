@@ -23,7 +23,6 @@ from openerp.osv import orm, fields
 
 
 class FiscalAttributeUse(orm.Model):
-    # TODO check, if this naming style is like contenion or attribute_use (as before)
     _name = "account.fiscal.attribute.use"
 
     _columns = {
@@ -51,7 +50,7 @@ class AccountFiscalAttribute(orm.Model):
             'Fiscal Domain'),
     }
 
-# TODO Tampleate & Wizard for FiscalDomain / FiscalAttributeUse / AccountFiscalAttribute
+# TODO Template & Wizard for FiscalDomain / FiscalAttributeUse / AccountFiscalAttribute
 
 """
 # Moved to account_fiscal_allocation in /account_fiscal_rule
