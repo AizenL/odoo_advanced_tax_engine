@@ -59,19 +59,19 @@ class AccountFiscalAllocationRule(orm.Model):
             'account_fiscal_allocation_rel',
             'rule_id', 'allocation_id',
             'Fiscal Allocation Sets',
-            domain="[('company_id','=',company_id)]", select=True),
+            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id)]", select=True),
         # Add available set of fiscal attributes of partners and products.
         # Attributes of Seller are the same as Attributes of Buyer (Attributes of Partner)
         # A distinction can be realized easily, if it might help reducing complexity
         'from_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Seller',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
+            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
         'to_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Buyer',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
+            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
         'product_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Product',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',product)]", select=True),
+            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',product)]", select=True),
         # Add further custom defined use cases of account_fiscal_attributes
         'use_sale': fields.boolean('Use in sales order'),
         'use_invoice': fields.boolean('Use in Invoices'),
@@ -172,6 +172,7 @@ class AccountFiscalAllocationRule(orm.Model):
         company = obj_company.browse(cr, uid, company_id, context=context)
         product = obj_product.browse(cr, uid, product_id, context=context)
 
+
         addrs = {}
         if partner_invoice_id:
             addrs['invoice'] = obj_partner.browse(
@@ -216,7 +217,7 @@ class AccountFiscalAllocationRuleTemplate(orm.Model):
     _columns = {
         'name': fields.char('Name', size=64, required=True),
         'description': fields.char('Description', size=128),
-        # TODO add fiscal domain ? also in wizard?
+        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
         'from_country': fields.many2one('res.country', 'Country Form'),
         'from_state': fields.many2one(
             'res.country.state', 'State From',

@@ -38,6 +38,8 @@
         # 'data/res.partner.title.csv',
         # 'data/res.country.state.city.csv',
         # 'views/res_partner_view.xml',
+        'views/fiscal_allocation_rule_view.xml',
+        'views/fiscal_allocation_view.xml',
     ],
     'demo': [
         # 'l10n_co_base_demo.xml',

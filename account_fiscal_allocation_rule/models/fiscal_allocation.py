@@ -58,6 +58,7 @@ class AccountFiscalAllocation(orm.Model):
     # TODO check if it leaves existing taxes untouched.
     # TODO check if it doesn't apply the same tax twice.
     # TODO Make sure sales and purchase ar applied accordingly.
+    # TODO Como llamar este metodo y de donde
     def map_tax(self, cr, uid, fallocation_id, taxes, context=None):
         # if not taxes:
         #     return []
@@ -101,12 +102,8 @@ class AccountFiscalAllocationTemplate(orm.Model):
     _description = 'Fiscal Allocation Set Template'
     _columns = {
         'name': fields.char('Fiscal Allocation', size=64, required=True),
-        'active': fields.boolean('Active',
-                                 help="By unchecking the active field, "
-                                      "you may hide a fiscal position without deleting it."),
         'description': fields.char('Description', size=64),
         'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
-        'company_id': fields.many2one('res.company', 'Company'),
         # 'account_ids': fields.one2many('account.fiscal.position.account', 'position_id', 'Account Mapping'),
         # 'tax_ids': fields.one2many('account.fiscal.position.tax', 'position_id', 'Tax Mapping'),
         'sale_tax_ids': fields.many2many(

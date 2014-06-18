@@ -50,15 +50,15 @@ class AccountInvoice(orm.Model):
             cr, uid, result, partner_id=partner_id,
             partner_invoice_id=partner_id, company_id=company_id)
 
-    def onchange_company_id(self, cr, uid, ids, company_id, partner_id, c_type,
-                            invoice_line, currency_id):
-        result = super(AccountInvoice, self).onchange_company_id(
-            cr, uid, ids, company_id, partner_id, c_type, invoice_line,
-            currency_id)
-
-        if not partner_id or not company_id:
-            return result
-
-        return self._fiscal_allocation_map(
-            cr, uid, result, partner_id=partner_id,
-            partner_invoice_id=partner_id, company_id=company_id)
+#   def onchange_company_id(self, cr, uid, ids, company_id, partner_id, c_type,
+#                           invoice_line, currency_id):
+#       result = super(AccountInvoice, self).onchange_company_id(
+#           cr, uid, ids, company_id, partner_id, c_type, invoice_line,
+#           currency_id)
+#
+#        if not partner_id or not company_id:
+#            return result
+#
+#       return self._fiscal_allocation_map(
+#            cr, uid, result, partner_id=partner_id,
+#            partner_invoice_id=partner_id, company_id=company_id)
