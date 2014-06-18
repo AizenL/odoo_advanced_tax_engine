@@ -65,13 +65,13 @@ class AccountFiscalAllocationRule(orm.Model):
         # A distinction can be realized easily, if it might help reducing complexity
         'from_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Seller',
-            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
+            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
         'to_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Buyer',
-            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
+            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
         'product_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Product',
-            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',product)]", select=True),
+            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','product')]", select=True),
         # Add further custom defined use cases of account_fiscal_attributes
         'use_sale': fields.boolean('Use in sales order'),
         'use_invoice': fields.boolean('Use in Invoices'),
@@ -239,13 +239,13 @@ class AccountFiscalAllocationRuleTemplate(orm.Model):
         # See above for comments
         'from_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Seller',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
+            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
         'to_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Buyer',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',partner)]", select=True),
+            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
         'product_fiscal_attribute_id': fields.many2one(
             'account.fiscal.attribute', 'Fiscal Attribute Product',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use','=',product)]", select=True),
+            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','product')]", select=True),
         # Add further custom defined use cases of account_fiscal_attributes
         'use_sale': fields.boolean('Use in sales order'),
         'use_invoice': fields.boolean('Use in Invoices'),
