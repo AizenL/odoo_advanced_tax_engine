@@ -2,12 +2,12 @@
 <openerp>
     <data>
 
-        <!-- Fiscal Allocation Rule Template -->
+        <!-- Tax Allocation Rules Template -->
         <record id="view_account_fiscal_allocation_rule_template_form" model="ir.ui.view">
             <field name="name">account.fiscal.allocation.rule.template.form</field>
             <field name="model">account.fiscal.allocation.rule.template</field>
             <field name="arch" type="xml">
-                <form string="Fiscal Allocation Rule Template">
+                <form string="Tax Allocation Rules Template">
                     <separator string="General" colspan="4"/>
                     <field name="name" select="1"/>
                     <field name="fiscal_domain_id" select="2"/>
@@ -44,7 +44,7 @@
             <field name="name">account.fiscal.allocation.rule.template.tree</field>
             <field name="model">account.fiscal.allocation.rule.template</field>
             <field name="arch" type="xml">
-                <tree string="Fiscal Allocation Rule Template">
+                <tree string="Tax Allocation Rules Template">
                     <field name="name"/>
                     <field name="fiscal_domain_id"/>
                     <field name="from_fiscal_attribute_id"/>
@@ -68,7 +68,7 @@
             <field name="model">account.fiscal.allocation.rule.template</field>
             <field eval="3" name="priority"/>
             <field name="arch" type="xml">
-                <search string="Fiscal Allocation Rule Template">
+                <search string="Tax Allocation Rules Template">
                     <group col="14" colspan="4">
                         <filter icon="terp-gtk-jump-to-ltr" string="Use in Sale" name="use_sale" domain="[('use_sale','=',True)]" help="Used in Sales orders"/>
                         <filter icon="terp-gtk-jump-to-ltr" string="Use in Invoice" name="use_invoice" domain="[('use_invoice','=',True)]" help="Used in Invoices"/>
@@ -92,7 +92,7 @@
         </record>
 
         <record id="action_account_fiscal_allocation_rule_template_form" model="ir.actions.act_window">
-            <field name="name">Fiscal allocation Rule Template</field>
+            <field name="name">Tax Allocation Rules Template</field>
             <field name="res_model">account.fiscal.allocation.rule.template</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
@@ -100,12 +100,12 @@
 
         <menuitem action="action_account_fiscal_allocation_rule_template_form" id="menu_action_account_fiscal_allocation_rule_template_form" parent="account.account_template_folder" sequence="21"/>
 
-        <!-- Fiscal Allocation Rule -->
+        <!-- Tax Allocation Rules -->
         <record id="view_account_fiscal_allocation_rule_form" model="ir.ui.view">
             <field name="name">account.fiscal.allocation.rule.form</field>
             <field name="model">account.fiscal.allocation.rule</field>
             <field name="arch" type="xml">
-                <form string="Fiscal Allocation Rule">
+                <form string="Tax Allocation Rules">
                     <separator string="General" colspan="4"/>
                     <field name="name" select="1"/>
                     <field name="fiscal_domain_id" select="2"/>
@@ -145,7 +145,7 @@
             <field name="name">account.fiscal.allocation.rule.tree</field>
             <field name="model">account.fiscal.allocation.rule</field>
             <field name="arch" type="xml">
-                <tree string="Fiscal Allocation Rule">
+                <tree string="Tax Allocation Rules">
                     <field name="company_id"/>
                     <field name="name" select="1"/>
                     <field name="fiscal_domain_id"/>
@@ -170,7 +170,7 @@
             <field name="model">account.fiscal.allocation.rule</field>
             <field eval="3" name="priority"/>
             <field name="arch" type="xml">
-                <search string="Fiscal Allocation Rule">
+                <search string="Tax Allocation Rules">
                     <group col="14" colspan="4">
                         <filter icon="terp-gtk-jump-to-ltr" string="Use in Sale" name="use_sale" domain="[('use_sale','=',True)]" help="Used in Sales Orders"/>
                         <filter icon="terp-gtk-jump-to-ltr" string="Use in Invoice" name="use_invoice" domain="[('use_invoice','=',True)]" help="Used in Invoices"/>
@@ -193,13 +193,13 @@
             </field>
         </record>
 
-        <!--  Wizard Fiscal Allocation Rule -->
+        <!--  Wizard Tax Allocation Rules -->
         <record id="view_wizard_account_fiscal_allocation_rule" model="ir.ui.view">
             <field name="name">Generate Fiscal allocations Rules from Templates</field>
             <field name="model">wizard.account.fiscal.allocation.rule</field>
             <field name="arch" type="xml">
-                <form string="Generate Fiscal Allocations Rules from Templates" version="8.0">
-                    <group string="This will automatically configure all fiscal allocation rules">
+                <form string="Generate Tax Allocations Rules from Templates" version="8.0">
+                    <group string="This will automatically configure all Tax Allocation Ruless">
                     	<field name="company_id" />
                     </group>
                     <footer>
@@ -211,7 +211,7 @@
         </record>
 
         <record id="action_wizard_account_fiscal_allocation_rule" model="ir.actions.act_window">
-            <field name="name">Generate Fiscal Allocations Rules from Templates</field>
+            <field name="name">Generate Tax Allocations Rules from Templates</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">wizard.account.fiscal.allocation.rule</field>
             <field name="view_type">form</field>
@@ -222,7 +222,7 @@
         <menuitem parent="account.account_template_folder" action="action_wizard_account_fiscal_allocation_rule" id="menu_wizard_fiscal_allocation_rule"/>
 
         <record id="action_account_fiscal_allocation_rule_form" model="ir.actions.act_window">
-            <field name="name">Fiscal Allocation Rule</field>
+            <field name="name">Tax Allocation Rules</field>
             <field name="res_model">account.fiscal.allocation.rule</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
@@ -231,6 +231,6 @@
         <menuitem
             action="action_account_fiscal_allocation_rule_form"
             id="menu_action_account_fiscal_allocation_rule_form"
-            parent="account.menu_finance_accounting" sequence="21"/>
+            parent="account_fiscal_attribute.menu_advanced_tax_engine" sequence="21"/>
     </data>
 </openerp>

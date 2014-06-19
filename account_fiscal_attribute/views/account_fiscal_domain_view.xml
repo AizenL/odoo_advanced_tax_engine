@@ -93,7 +93,7 @@
 			<field name="view_mode">tree,form</field>
 		</record>
 -->
-		<menuitem id="menu_account_fiscal_domain" action="account_fiscal_domain_action"  parent="account.menu_finance_accounting" />
+		<menuitem id="menu_account_fiscal_domain" action="account_fiscal_domain_action"  parent="menu_advanced_tax_engine" />
 <!-- Once templates included, uncomment
 		<menuitem id="menu_account_fiscal_domain_template" action="account_fiscal_domain_template_action" parent="account.account_template_folder" sequence="22" />
 -->
