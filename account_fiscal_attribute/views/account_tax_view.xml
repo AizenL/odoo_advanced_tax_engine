@@ -6,7 +6,7 @@
         <record id="account_tax_tree_inherited_account_fiscal_domain" model="ir.ui.view">
             <field name="name">account.tax.tree.inherited.account.fiscal.domain</field>
             <field name="model">account.tax</field>
-            <field name="inherit_id" ref="account.view_tax_form" />
+            <field name="inherit_id" ref="account.view_tax_tree" />
             <field name="arch" type="xml">
 				<field name="name" position="after">
 					<field name="fiscal_domain_id" />
@@ -21,7 +21,7 @@
             <field name="arch" type="xml">
                 <data>
                     <field name="company_id" position="after">
-					    <field name="fiscal_domain_id" groups="account.fiscal.domain"/>
+					    <field name="fiscal_domain_id"/>
 				    </field>
                     <filter string="Company" position="after">
                         <filter string="Fiscal Domain" domain="[]" context="{'group_by':'fiscal_domain_id'}"/>
