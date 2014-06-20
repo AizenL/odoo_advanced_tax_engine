@@ -24,7 +24,7 @@ from openerp.osv import orm, fields
 
 class ProductFiscalAttribute(orm.Model):
     _inherit = "product.product"
-    _column = {
+    _columns = {
         # TODO determine how to narrow down on fiscal_domain... Probably purely a view operation?
         #      Or make it a many 2 one and somehow dynamically add colums?
         #

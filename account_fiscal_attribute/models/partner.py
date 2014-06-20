@@ -23,21 +23,22 @@ from openerp.osv import orm, fields
 
 
 class PartnerFiscalAttribute(orm.Model):
+    _name = "res.partner"
     _inherit = "res.partner"
-    _column = {
-        # TODO determine how to narrow down on fiscal_domain... Probably purely a view operation?
-        #      Or make it a many 2 one and somehow dynamically add colums?
-        #
-        # TODO Make sure there can be more than one property per domain -> update fiscal_allocation_rule
+    # TODO determine how to narrow down on fiscal_domain... Probably purely a view operation?
+    #      Or make it a many 2 one and somehow dynamically add colums?
+    #
+    # TODO Make sure there can be more than one property per domain -> update fiscal_allocation_rule
+    _columns = {
         'property_fiscal_attribute': fields.property(
-            # TODO verify how to use many2many
             type='many2one',
             relation='account.fiscal.attribute',
             string="Fiscal Attribute",
             # domain="[('type', '=', 'payable')]",
             # domain="[('account.fiscal.attribute.use.name', '=ilike', 'partner')]",
-            help="Company wise (eg localizable) Fiscal Attribute")
-
+            help="Company wise (eg localizable) Fiscal Attribute",
             # view_load=True,
-            # required=True)
+            # required=True,
+        ),
     }
+PartnerFiscalAttribute()

@@ -37,8 +37,8 @@
     'data': [
         'data/account.fiscal.attribute.use.csv',
         'security/ir.model.access.csv', # debe ser aconditionado por un experto
-        # 'views/partner_view.xml', - para depurar
-        # 'views/product_view.xml', - sin contenido intelligente
+        'views/partner_view.xml', # - para depurar
+        # 'views/product_view.xml', # - sin contenido intelligente
         'views/account_fiscal_attribute_view.xml', # base para adaptar (templates & wizards) Sequencia: 1 (!)
         'views/account_fiscal_domain_view.xml', # base para adaptar (templates & wizards) Sequencia: 2 (!)
         'views/account_tax_view.xml' # adaptar para template views
