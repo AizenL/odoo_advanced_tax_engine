@@ -30,6 +30,10 @@ import time
 from openerp.osv import fields, orm
 from itertools import chain
 
+ATTR_USE_DOM_COMPANY = 'company'
+ATTR_USE_DOM_PINVOICE = 'partner_invoice'
+ATTR_USE_DOM_PSHIPPER = 'partner_shipper'
+ATTR_USE_DOM_PRODUCT = 'product'
 
 ACC_FISC_ALLOC_RULE_COLS_TMPL = {
 
@@ -54,16 +58,16 @@ ACC_FISC_ALLOC_RULE_COLS_TMPL = {
     'from_state': fields.many2one(
         'res.country.state', 'State From',
         domain="[('country_id','=',from_country)]"),
-    'to_invoice_country': fields.many2one(
-        'res.country', 'Invoice Country'),
-    'to_invoice_state': fields.many2one(
+    'to_%s_country': fields.many2one(
+        'res.country', 'Invoice Country') % ATTR_USE_DOM_PINVOICE,
+    'to_&s_state': fields.many2one(
         'res.country.state', 'Invoice State',
-        domain="[('country_id','=',to_invoice_country)]"),
-    'to_shipping_country': fields.many2one(
-        'res.country', 'Destination Country'),
-    'to_shipping_state': fields.many2one(
+        domain="[('country_id','=',to_invoice_country)]") % ATTR_USE_DOM_PINVOICE,
+    'to_&s_country': fields.many2one(
+        'res.country', 'Destination Country') % ATTR_USE_DOM_PSHIPPER,
+    'to_%s_state': fields.many2one(
         'res.country.state', 'Destination State',
-        domain="[('country_id','=',to_shipping_country)]"),
+        domain="[('country_id','=',to_shipping_country)]") % ATTR_USE_DOM_PSHIPPER,
     # These are the Fiscal Attributes which are checked at runtime on the invoice-line level. As a many2many you can
     # select a custom number out of the Fiscal Attributes Table. Typicaly you might want to constrain the choice to
     # an above set Fiscal Domain (optional). Typically when parametrizing you might filter by Attribute Use (eg.
@@ -140,10 +144,28 @@ class AccountFiscalAllocationRule(orm.Model):
         from_country = company.partner_id.country_id.id
         from_state = company.partner_id.state_id.id
 
-        # Get all Fiscal Attributes from passed arguments
-        # TODO should contain a dict as is many2many field
-        from_attribute = company.partner_id.property_fiscal_attribute.id
-        product_attribute = product.property_fiscal_attribute.id
+        # ##### Get all Fiscal Attributes from recieved arguments
+
+        # Collects all Fiscal Attributes to construct a concurrent match-againt-list.
+        # LOGIC: If the Fiscal Attribute of a Fiscal Rule are an entire subset of this list, the rule will match.
+        attributes_all = []
+        # Return list of the company Fiscal Attributes
+        attributes_all += company.partner_id.property_fiscal_attribute.search(
+            cr, uid, ('name','=', ATTR_USE_DOM_COMPANY), context=None
+        )
+        # Return list of the product Fiscal Attributes
+        # The search domain in product is optional unless the prouduct would be coded to recive mor AttributUse Domains.
+        if product:
+            attributes_all += product.property_fiscal_attribute.search(
+                cr, uid, ('name','=', ATTR_USE_DOM_PRODUCT), context=None
+        )
+        # Collect all attributes of the corresponding invoice & shipper partners resepectively.
+        for attr_dom_use, address in addrs.items():
+            attributes_all += address.fiscal_attribute_id.search(
+                cr, uid, ('name','=', attr_dom_use), context=None
+            )
+
+        # ##### Finished / "Get all Fiscal Attributes from recieved arguments
 
         document_date = context.get('date', time.strftime('%Y-%m-%d'))
         use_domain = context.get('use_domain', ('use_sale', '=', True))
@@ -157,9 +179,9 @@ class AccountFiscalAllocationRule(orm.Model):
                   ('date_start', '<=', document_date),
                   '|', ('date_end', '=', False),
                   ('date_end', '>=', document_date),
-                  # TODO fiscal_attribute_id (as a many2many) must be probably flattened out/iterated:
+                  # TODO fiscal_attribute_id (as a many2many) must be somehow flattened out/iterated:
                   '|', ('fiscal_attribute_id', '=', False),
-                  ('fiscal_attribute_id', 'in', from_attribute),
+                  ('fiscal_attribute_id', 'in', attribute_all),
                   ]
         if partner.vat:
             domain += [('vat_rule', 'in', ['with', 'both'])]
@@ -167,19 +189,19 @@ class AccountFiscalAllocationRule(orm.Model):
             domain += ['|', ('vat_rule', 'in', ['both', 'without']),
                        ('vat_rule', '=', False)]
 
-        for address_type, address in addrs.items():
-            key_country = 'to_%s_country' % address_type
-            key_state = 'to_%s_state' % address_type
-            key_attribute = 'to_%s_fiscal_attribute_id' % address_type
+        for attr_dom_use, address in addrs.items():
+            key_country = 'to_%s_country' % attr_dom_use
+            key_state = 'to_%s_state' % attr_dom_use
+
             to_country = address.country_id.id or False
+            to_state = address.state_id.id or False
+
+
             domain += ['|', (key_country, '=', to_country),
                        (key_country, '=', False)]
-            to_state = address.state_id.id or False
+
             domain += ['|', (key_state, '=', to_state),
                        (key_state, '=', False)]
-            to_attribute = address.fiscal_attribute_id.id or False
-            domain += ['|', (key_attribute, '=', to_attribute),
-                       (key_attribute, '=', False)]
 
         return domain
 
@@ -196,31 +218,22 @@ class AccountFiscalAllocationRule(orm.Model):
             return result
 
         obj_fsc_rule = self.pool.get('account.fiscal.allocation.rule')
+
         obj_partner = self.pool.get("res.partner")
         obj_company = self.pool.get("res.company")
-        # TODO onchange for product
         obj_product = self.pool.get("product.product")
-        # TODO get current product_id here as it is not passed, or pass it from some superior call (eg onchange)
+
         partner = obj_partner.browse(cr, uid, partner_id, context=context)
         company = obj_company.browse(cr, uid, company_id, context=context)
         product = obj_product.browse(cr, uid, product_id, context=context)
 
         addrs = {}
         if partner_invoice_id:
-            addrs['invoice'] = obj_partner.browse(
+            addrs[ATTR_USE_DOM_PINVOICE] = obj_partner.browse(
                 cr, uid, partner_invoice_id, context=context)
 
-        # In picking case the invoice_id can be empty but we need a
-        # value I only see this case, maybe we can move this code in
-        # fiscal_stock_rule
-        else:
-            partner_addr = partner.address_get(['invoice'])
-            addr_id = partner_addr['invoice'] and partner_addr['invoice'] or None
-            if addr_id:
-                addrs['invoice'] = obj_partner.browse(
-                    cr, uid, addr_id, context=context)
         if partner_shipping_id:
-            addrs['shipping'] = obj_partner.browse(
+            addrs[ATTR_USE_DOM_PSHIPPER] = obj_partner.browse(
                 cr, uid, partner_shipping_id, context=context)
 
         # Rule based determination
