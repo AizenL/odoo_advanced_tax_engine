@@ -31,14 +31,11 @@ class PartnerFiscalAttribute(orm.Model):
     # TODO Make sure there can be more than one property per domain -> update fiscal_allocation_rule
     _columns = {
         'property_fiscal_attribute': fields.property(
-            type='many2one',
+            type='many2many',
             relation='account.fiscal.attribute',
             string="Fiscal Attribute",
-            # domain="[('type', '=', 'payable')]",
-            # domain="[('account.fiscal.attribute.use.name', '=ilike', 'partner')]",
+            domain="[('attribute_use_id', '=ilike', 'partner')]",
             help="Company wise (eg localizable) Fiscal Attribute",
             # view_load=True,
-            # required=True,
         ),
     }
-PartnerFiscalAttribute()

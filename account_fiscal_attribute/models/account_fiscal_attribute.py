@@ -27,9 +27,15 @@ class FiscalAttributeUse(orm.Model):
 
     _columns = {
         'name': fields.char('name', size=25, required=True),
-        'company_id': fields.many2one('res.company', 'Company'),
+        'company_id': fields.many2one('res.company', 'Company', required=True),
         'note': fields.text('note'),
         'active': fields.boolean('active'),
+    }
+
+    _defaults = {
+        'active': True,
+        'company_id': lambda s, cr, uid, c: s.pool.get(
+            'res.company')._company_default_get(cr, uid, 'account.fiscal.attribute.use', context=c),
     }
 
 
@@ -38,8 +44,8 @@ class AccountFiscalAttribute(orm.Model):
 
     _columns = {
         'name': fields.char('name', size=25, required=True),
-        'description': fields.char('description', size=50, required=True),
-        'company_id': fields.many2one('res.company', 'Company'),
+        'description': fields.char('description', size=50),
+        'company_id': fields.many2one('res.company', 'Company', required=True),
         'note': fields.text('note'),
         'active': fields.boolean('active'),
         'attribute_use_id': fields.many2one(
@@ -48,6 +54,12 @@ class AccountFiscalAttribute(orm.Model):
         'fiscal_domain_id': fields.many2one(
             'account.fiscal.domain',
             'Fiscal Domain'),
+    }
+
+    _defaults = {
+        'active': True,
+        'company_id': lambda s, cr, uid, c: s.pool.get(
+            'res.company')._company_default_get(cr, uid, 'account.fiscal.attribute', context=c),
     }
 
 # TODO Template & Wizard for FiscalDomain / FiscalAttributeUse / AccountFiscalAttribute
