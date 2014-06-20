@@ -28,75 +28,109 @@
 
 import time
 from openerp.osv import fields, orm
+from itertools import chain
+
+
+ACC_FISC_ALLOC_RULE_COLS_TMPL = {
+
+    # Note: This are template style fields.
+    # For nontemplate fields you might add aditional constraints to specific nontemplate fields (eg. company_id).
+    # The chain method from itertools updates fields. Consider using this from within the nontemplate class when adding
+    # new fields.
+
+    # --- GENERAL SECTION ---
+
+    'name': fields.char('Name', size=64, required=True),
+    'description': fields.char('Description', size=128),
+    # This fiscal domain will narrow down the available fiscal attributes / fiscal allocations.
+    # It should help clustering and reducing complexity. Rules are applied *additionally*
+    # preserving the result (reed: taxes applied) of previous iterations.
+    # However it is optional. You can construct more complex "cross-domain" rules leaving it empty.
+    'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
+
+    # --- CRITERION SECTION ---
+
+    'from_country': fields.many2one('res.country', 'Country From'),
+    'from_state': fields.many2one(
+        'res.country.state', 'State From',
+        domain="[('country_id','=',from_country)]"),
+    'to_invoice_country': fields.many2one(
+        'res.country', 'Invoice Country'),
+    'to_invoice_state': fields.many2one(
+        'res.country.state', 'Invoice State',
+        domain="[('country_id','=',to_invoice_country)]"),
+    'to_shipping_country': fields.many2one(
+        'res.country', 'Destination Country'),
+    'to_shipping_state': fields.many2one(
+        'res.country.state', 'Destination State',
+        domain="[('country_id','=',to_shipping_country)]"),
+    # These are the Fiscal Attributes which are checked at runtime on the invoice-line level. As a many2many you can
+    # select a custom number out of the Fiscal Attributes Table. Typicaly you might want to constrain the choice to
+    # an above set Fiscal Domain (optional). Typically when parametrizing you might filter by Attribute Use (eg.
+    # 'partner' or 'product' cases for convenience. (planned partner specific roles: 'seller' 'invoiced partner'
+    # 'shipped partner'
+    'fiscal_attribute_id': fields.many2many(
+        'account.fiscal.attribute', 'Fiscal Attributes',
+        # TODO this probably might result in problems as templates do not have field company_id
+        domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id)]"),
+    'use_sale': fields.boolean('Use in sales order'),
+    'use_invoice': fields.boolean('Use in Invoices'),
+    'use_purchase': fields.boolean('Use in Purchases'),
+    'use_picking': fields.boolean('Use in Picking'),
+    'date_start': fields.date(
+        'Start Date', help="Starting date for this rule to be valid."),
+    'date_end': fields.date(
+        'End Date', help="Ending date for this rule to be valid."),
+    'vat_rule': fields.selection(
+        [('with', 'With VAT number'),
+         ('both', 'With or Without VAT number'),
+         ('without', 'Without VAT number')], "VAT Rule",
+        help=("Choose if the customer need to have the"
+              " field VAT fill for using this fiscal position")),
+    'sequence': fields.integer(
+        'Priority', required=True,
+        help='Unused, unless you use account replacement. Within a sequence, the rule with '
+             'the highest sequence AND which has an account replacement defined, will apply '
+             'accross all fiscal domains will.'),
+
+    # --- APPLICATION SECTION ---
+
+    # Theese ar "Tax Culsters" applied with some extra magic. They can contain one ore various (many2many) clusters
+    # and typically require to be clustered around several (or one) Fiscal Domains.
+    'fiscal_allocation_id': fields.many2many(
+        'account.fiscal.allocation',
+        'account_fiscal_allocation_rel',
+        'rule_id', 'allocation_id',
+        'Fiscal Allocation Sets',
+        # TODO this probably might result in problems as templates do not have field company_id
+        domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id)]", select=True),
+    # TODO Add account replacement on a per invoice line level with lateste-sequence-win conflict-resolution
+}
+
+ACC_FISC_ALLOC_RULE_DEFS_TMPL = {
+    'sequence': 10,
+    'vat_rule': 'both'
+}
 
 
 class AccountFiscalAllocationRule(orm.Model):
     _name = "account.fiscal.allocation.rule"
     _order = 'sequence'
-    _columns = {
-        'name': fields.char('Name', size=64, required=True),
-        'description': fields.char('Description', size=128),
-        # Set a fiscal domain for narrowing drop down menus later
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
-        'from_country': fields.many2one('res.country', 'Country From'),
-        'from_state': fields.many2one(
-            'res.country.state', 'State From',
-            domain="[('country_id','=',from_country)]"),
-        'to_invoice_country': fields.many2one(
-            'res.country', 'Invoice Country'),
-        'to_invoice_state': fields.many2one(
-            'res.country.state', 'Invoice State',
-            domain="[('country_id','=',to_invoice_country)]"),
-        'to_shipping_country': fields.many2one(
-            'res.country', 'Destination Country'),
-        'to_shipping_state': fields.many2one(
-            'res.country.state', 'Destination State',
-            domain="[('country_id','=',to_shipping_country)]"),
+
+    nontmpl_update_cols = {
+        'active': fields.boolean('active'),
         'company_id': fields.many2one(
             'res.company', 'Company', required=True, select=True),
-        'fiscal_allocation_id': fields.many2many(
-            'account.fiscal.allocation',
-            'account_fiscal_allocation_rel',
-            'rule_id', 'allocation_id',
-            'Fiscal Allocation Sets',
-            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id)]", select=True),
-        # Add available set of fiscal attributes of partners and products.
-        # Attributes of Seller are the same as Attributes of Buyer (Attributes of Partner)
-        # A distinction can be realized easily, if it might help reducing complexity
-        'from_fiscal_attribute_id': fields.many2one(
-            'account.fiscal.attribute', 'Fiscal Attribute Seller',
-            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
-        'to_fiscal_attribute_id': fields.many2one(
-            'account.fiscal.attribute', 'Fiscal Attribute Buyer',
-            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
-        'product_fiscal_attribute_id': fields.many2one(
-            'account.fiscal.attribute', 'Fiscal Attribute Product',
-            domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','product')]", select=True),
-        # Add further custom defined use cases of account_fiscal_attributes
-        'use_sale': fields.boolean('Use in sales order'),
-        'use_invoice': fields.boolean('Use in Invoices'),
-        'use_purchase': fields.boolean('Use in Purchases'),
-        'use_picking': fields.boolean('Use in Picking'),
-        'date_start': fields.date(
-            'Start Date', help="Starting date for this rule to be valid."),
-        'date_end': fields.date(
-            'End Date', help="Ending date for this rule to be valid."),
-        # Add optional account replacement on a per invoice line level
-        'sequence': fields.integer(
-            'Priority', required=True,
-            help='Unused, unless you use account replacement. Within a sequence, the rule with '
-                 'the highest sequence AND which has an account replacement defined, will apply '
-                 'accross all fiscal domains will.'),
-        'vat_rule': fields.selection(
-            [('with', 'With VAT number'),
-             ('both', 'With or Without VAT number'),
-             ('without', 'Without VAT number')], "VAT Rule",
-            help=("Choose if the customer need to have the"
-                  " field VAT fill for using this fiscal position")),
     }
-    _defaults = {
-        'sequence': 10,
+
+    nontmpl_update_defs = {
+        'active': True,
+        'company_id': lambda s, cr, uid, c: s.pool.get(
+            'res.company')._company_default_get(cr, uid, 'account.fiscal.allocation.rule', context=c),
     }
+
+    _columns = dict(chain(ACC_FISC_ALLOC_RULE_COLS_TMPL.items(), nontmpl_update_cols.items))
+    _defaults = dict(chain(ACC_FISC_ALLOC_RULE_DEFS_TMPL.items(), nontmpl_update_defs.items))
 
     def _map_domain(self, cr, uid, partner, addrs, company, product,
                     context=None, **kwargs):
@@ -105,7 +139,9 @@ class AccountFiscalAllocationRule(orm.Model):
 
         from_country = company.partner_id.country_id.id
         from_state = company.partner_id.state_id.id
-        # Get values for additional attributes
+
+        # Get all Fiscal Attributes from passed arguments
+        # TODO should contain a dict as is many2many field
         from_attribute = company.partner_id.property_fiscal_attribute.id
         product_attribute = product.property_fiscal_attribute.id
 
@@ -121,12 +157,9 @@ class AccountFiscalAllocationRule(orm.Model):
                   ('date_start', '<=', document_date),
                   '|', ('date_end', '=', False),
                   ('date_end', '>=', document_date),
-                  # Set more (custom) attributes here:
-                  # TODO Tax Domain
-                  '|', ('from_fiscal_attribute_id', '=', False),
-                  ('from_fiscal_attribute_id', '=', from_attribute),
-                  '|', ('product_fiscal_attribute_id', '=', False),
-                  ('product_fiscal_attribute_id', '=', product_attribute),
+                  # TODO fiscal_attribute_id (as a many2many) must be probably flattened out/iterated:
+                  '|', ('fiscal_attribute_id', '=', False),
+                  ('fiscal_attribute_id', 'in', from_attribute),
                   ]
         if partner.vat:
             domain += [('vat_rule', 'in', ['with', 'both'])]
@@ -172,7 +205,6 @@ class AccountFiscalAllocationRule(orm.Model):
         company = obj_company.browse(cr, uid, company_id, context=context)
         product = obj_product.browse(cr, uid, product_id, context=context)
 
-
         addrs = {}
         if partner_invoice_id:
             addrs['invoice'] = obj_partner.browse(
@@ -214,62 +246,8 @@ AccountFiscalAllocationRule()
 
 class AccountFiscalAllocationRuleTemplate(orm.Model):
     _name = "account.fiscal.allocation.rule.template"
-    _columns = {
-        'name': fields.char('Name', size=64, required=True),
-        'description': fields.char('Description', size=128),
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
-        'from_country': fields.many2one('res.country', 'Country Form'),
-        'from_state': fields.many2one(
-            'res.country.state', 'State From',
-            domain="[('country_id','=',from_country)]"),
-        'to_invoice_country': fields.many2one('res.country', 'Country To'),
-        'to_invoice_state': fields.many2one(
-            'res.country.state', 'State To',
-            domain="[('country_id','=',to_invoice_country)]"),
-        'to_shipping_country': fields.many2one(
-            'res.country', 'Destination Country'),
-        'to_shipping_state': fields.many2one(
-            'res.country.state', 'Destination State',
-            domain="[('country_id','=',to_shipping_country)]"),
-        'fiscal_allocation_id': fields.many2many(
-            'account.fiscal.allocation',
-            'account_fiscal_allocation_rel',
-            'rule_id', 'allocation_id',
-            'Fiscal Allocation Sets'),
-        # See above for comments
-        'from_fiscal_attribute_id': fields.many2one(
-            'account.fiscal.attribute', 'Fiscal Attribute Seller',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
-        'to_fiscal_attribute_id': fields.many2one(
-            'account.fiscal.attribute', 'Fiscal Attribute Buyer',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','partner')]", select=True),
-        'product_fiscal_attribute_id': fields.many2one(
-            'account.fiscal.attribute', 'Fiscal Attribute Product',
-            domain="[('fiscal_domain_id','=',fiscal_domain_id),('attribute_use_id','=','product')]", select=True),
-        # Add further custom defined use cases of account_fiscal_attributes
-        'use_sale': fields.boolean('Use in sales order'),
-        'use_invoice': fields.boolean('Use in Invoices'),
-        'use_purchase': fields.boolean('Use in Purchases'),
-        'use_picking': fields.boolean('Use in Picking'),
-        'date_start': fields.date(
-            'Start Date', help="Starting date for this rule to be valid."),
-        'date_end': fields.date(
-            'End Date', help="Ending date for this rule to be valid."),
-        'sequence': fields.integer(
-            'Priority', required=True,
-            help='The lowest number will be applied.'),
-        'vat_rule': fields.selection(
-            [('with', 'With VAT number'),
-             ('both', 'With or Without VAT number'),
-             ('without', 'Without VAT number')],
-            "VAT Rule",
-            help=("Choose if the customer need to have the "
-                  "field VAT fill for using this fiscal position")),
-    }
-    _defaults = {
-        'sequence': 10,
-        'vat_rule': 'both'
-    }
+    _columns = ACC_FISC_ALLOC_RULE_COLS_TMPL
+    _defaults = ACC_FISC_ALLOC_RULE_DEFS_TMPL
 
 
 class WizardAccountFiscalAllocationRule(orm.TransientModel):

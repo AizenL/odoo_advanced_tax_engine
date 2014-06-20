@@ -26,14 +26,42 @@ from openerp.osv import orm
 class AccountInvoiceLine (orm.Model):
     _inherit = 'account.invoice.line'
 
+    # Local method to pass the calling module. (here: Invoice, more specifically: account.inoivce.line)
+    # Note: Fiscal Allocation Rules can be setup to be applied depending on from where they are called.
     def _fiscal_allocation_map(self, cr, uid, result, context=None, **kwargs):
 
         if not kwargs.get('context', False):
             kwargs['context'] = {}
 
+        # Clarify that account.fiscal.allocation.rule will be called from the line of an *invoice* (use_invoice=True)
         kwargs['context'].update({'use_domain': ('use_invoice', '=', True)})
-        fa_rule_obj = self.pool.get('account.fiscal.allocation.rule')
-        return fa_rule_obj.apply_fiscal_mapping(cr, uid, result, **kwargs)
+
+        # Return the result of calling the apply_fiscal_mapping method of Fiscal Allocation Rule on itself.
+        return self.pool.get('account.fiscal.allocation.rule').apply_fiscal_mapping(cr, uid, result, **kwargs)
+
+    def product_id_change(self, cr, uid, ids, product, uom_id, qty=0, name='', prd_type='out_invoice',
+                          partner_id=False, fposition_id=False, price_unit=False, currency_id=False,
+                          context=None, company_id=None):
+        # We do also want the results of the product_id_change of the inherited class.
+        result = super(AccountInvoiceLine, self).product_id_change(
+            cr, uid, ids, product, uom_id, qty, name, prd_type,
+            partner_id, fposition_id, price_unit, currency_id,
+            context, company_id
+        )
+        # If not all (partner, company, product) are set, we nothing special happens.
+        if not partner_id or not company_id or not product:
+            return result
+
+        # We take the result of the method of the inherited class, define some mandatory arguments and pass it to the
+        # preparatory function above.
+        return self._fiscal_allocation_map(
+            cr, uid, result, partner_id=partner_id, partner_invoice_id=partner_id,
+            company_id=company_id, product_id=product
+        )
+
+    # --- Methods that where originally inherited from account.invoice ---
+    #
+    # TODO : Make onchange mehtods for partner / company to be aware of the product of aacount.invoice.line
 
     # def onchange_partner_id(self, cr, uid, ids, p_type, partner_id,
     #                         date_invoice=False, payment_term=False,
@@ -62,20 +90,3 @@ class AccountInvoiceLine (orm.Model):
     #     return self._fiscal_allocation_map(
     #         cr, uid, result, partner_id=partner_id, partner_invoice_id=partner_id, company_id=company_id
     #     )
-
-    def product_id_change(self, cr, uid, ids, product, uom_id, qty=0, name='', prd_type='out_invoice',
-                          partner_id=False, fposition_id=False, price_unit=False, currency_id=False,
-                          context=None, company_id=None):
-        result = super(AccountInvoiceLine, self).product_id_change(
-            cr, uid, ids, product, uom_id, qty, name, prd_type,
-            partner_id, fposition_id, price_unit, currency_id,
-            context, company_id
-        )
-
-        if not partner_id or not company_id or not product:
-            return result
-
-        return self._fiscal_allocation_map(
-            cr, uid, result, partner_id=partner_id, partner_invoice_id=partner_id,
-            company_id=company_id, product_id=product
-        )
