@@ -25,72 +25,71 @@
 ###############################################################################
 
 from openerp.osv import fields, orm
+from itertools import chain
 
+ACC_FISC_ALLOC_COLS_TMPL = {
+    'name': fields.char('Fiscal Allocation', size=64, required=True),
+    'description': fields.char('Description', size=64),
+    'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
+    'sale_tax_ids': fields.many2many(
+        'account.tax', 'fiscal_allocation_sale_tax_rel',
+        'fiscal_allocation_id', 'tax_id', 'Applicable Sale Taxes',
+        domain="[('type_tax_use', '!=', 'purchase'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
+    'purchase_tax_ids': fields.many2many(
+        'account.tax', 'fiscal_allocation_purchase_tax_rel',
+        'fiscal_allocation_id', 'tax_id', 'Applicable Purchase Taxes',
+        domain="[('type_tax_use', '!=', 'sale'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
+    'note': fields.text('Notes'),
+}
+
+ACC_FISC_ALLOC_DEFS_TMPL = {
+
+}
 
 class AccountFiscalAllocation(orm.Model):
     _name = 'account.fiscal.allocation'
     _description = 'Fiscal Allocation Set'
-    _columns = {
-        'name': fields.char('Fiscal Allocation', size=64, required=True),
-        'active': fields.boolean('Active',
-                                 help="By unchecking the active field, you may hide a "
-                                      "fiscal position without deleting it."),
-        'description': fields.char('Description', size=64),
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
-        'company_id': fields.many2one('res.company', 'Company'),
-        # 'account_ids': fields.one2many('account.fiscal.position.account', 'position_id', 'Account Mapping'),
-        # 'tax_ids': fields.one2many('account.fiscal.position.tax', 'position_id', 'Tax Mapping'),
-        'sale_tax_ids': fields.many2many(
-            'account.tax', 'fiscal_allocation_sale_tax_rel',
-            'fiscal_allocation_id', 'tax_id', 'Applicable Sale Taxes',
-            domain="[('type_tax_use', '!=', 'purchase'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
-        'purchase_tax_ids': fields.many2many(
-            'account.tax', 'fiscal_allocation_purchase_tax_rel',
-            'fiscal_allocation_id', 'tax_id', 'Applicable Purchase Taxes',
-            domain="[('type_tax_use', '!=', 'sale'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
-        'note': fields.text('Notes'),
+
+    nontmpl_update_cols = {
+        'active': fields.boolean('active'),
+        'company_id': fields.many2one(
+            'res.company', 'Company', required=True, select=True),
     }
 
-    _defaults = {
+    nontmpl_update_defs = {
         'active': True,
+        'company_id': lambda s, cr, uid, c: s.pool.get(
+            'res.company')._company_default_get(cr, uid, 'account.fiscal.allocation.rule', context=c),
     }
 
-    # TODO check if it leaves existing taxes untouched.
-    # TODO check if it doesn't apply the same tax twice.
-    # TODO Make sure sales and purchase ar applied accordingly.
-    # TODO Como llamar este metodo y de donde
-    def map_tax(self, cr, uid, fallocation_id, taxes, context=None):
-        # if not taxes:
-        #     return []
-        if not fallocation_id:
-            return map(lambda x: x.id, taxes)
-        result = set()
-        # If loop to determin if application domain is sale or purchase
-        for t in taxes:
-            for tax in fallocation_id.sale_tax_ids:
-                if tax.id == t.id:
-                    result.add(t.id)
-                else:
-                    result.add(tax.id)
+    _columns = dict(chain(ACC_FISC_ALLOC_COLS_TMPL.items(), nontmpl_update_cols.items()))
+    _defaults = dict(chain(ACC_FISC_ALLOC_DEFS_TMPL.items(), nontmpl_update_defs.items()))
+
+    def map_tax(self, cr, uid, frules, taxes, inv_type, context=None):
+
+        # 'set()' filters duplicates. 'taxes' are product's default coded taxes, there is no conflict with the
+        # traditional paradigm of allocating default taxes to products. They have been passed and will be retained:
+        result = set(taxes)
+
+        # CASE: Outgoing Invoice or a refund of such.
+        if inv_type in ('out_invoice','out_refund'):
+            # Iterate all applicable Fiscal Allocation Rules, that have been passed.
+            for f in frules:
+                # Iterate all Fiscal Allocations of each Fiscal Allocation Rule
+                for a in fiscal_allocation_id:
+                    # Iterate Sales Taxes of each Fiscal Allocation
+                    for t in self.sale_tax_ids:
+                        # Add Tax to result (evitating duplicates, as 'result' is a python 'set()')
+                        result.add(t.id)
+
+        # CASE: Incoming Invoice or a refund of such.
+        if inv_type in ('in_invoice', 'in_refund'):
+            for f in frules:
+                for a in fiscal_allocation_id:
+                    for t in self.purchase_tax_ids:
+                        result.add(t.id)
+
         return list(result)
-
-    # Following out-commented code: Left over from Core Code. If account mapping should be necessary,
-    # this should be on the invoice line (not the invoice).
-    # It should be applied (as being unique per line item) by the latest sequence
-    # of the fiscal allocation rule (which must be adapted for account mapping)
-    # See account_fiscal_allocation_rule around the sequence column help for more details.
-"""
-    def map_account(self, cr, uid, fposition_id, account_id, context=None):
-        if not fposition_id:
-            return account_id
-        for pos in fposition_id.account_ids:
-            if pos.account_src_id.id == account_id:
-                account_id = pos.account_dest_id.id
-                break
-        return account_id
-"""
-# Do we logically need any SQL constraints on the many2many relation tables?
-
 
 # ---------------------------
 # Templates & Wizards Section
@@ -100,22 +99,8 @@ class AccountFiscalAllocation(orm.Model):
 class AccountFiscalAllocationTemplate(orm.Model):
     _name = 'account.fiscal.allocation.template'
     _description = 'Fiscal Allocation Set Template'
-    _columns = {
-        'name': fields.char('Fiscal Allocation', size=64, required=True),
-        'description': fields.char('Description', size=64),
-        'fiscal_domain_id': fields.many2one('account.fiscal.domain', 'Fiscal Domain', required=True, select=True),
-        # 'account_ids': fields.one2many('account.fiscal.position.account', 'position_id', 'Account Mapping'),
-        # 'tax_ids': fields.one2many('account.fiscal.position.tax', 'position_id', 'Tax Mapping'),
-        'sale_tax_ids': fields.many2many(
-            'account.tax', 'fiscal_allocation_sale_tax_rel',
-            'fiscal_allocation_id', 'tax_id', 'Applicable Sale Taxes',
-            domain="[('type_tax_use', '!=', 'purchase'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
-        'purchase_tax_ids': fields.many2many(
-            'account.tax', 'fiscal_allocation_purchase_tax_rel',
-            'fiscal_allocation_id', 'tax_id', 'Applicable Purchase Taxes',
-            domain="[('type_tax_use', '!=', 'sale'),('fiscal_domain_id', '=', fiscal_domain_id)]"),
-        'note': fields.text('Notes'),
-    }
+    _columns = ACC_FISC_ALLOC_COLS_TMPL
+    _defaults = ACC_FISC_ALLOC_DEFS_TMPL
 
 # Is this for pure convenience? Look at views of fiscal_classification to identify use.
     def name_search(self, cr, user, name='', args=None, operator='ilike',

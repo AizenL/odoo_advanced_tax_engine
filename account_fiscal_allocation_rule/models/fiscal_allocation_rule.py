@@ -108,7 +108,8 @@ ACC_FISC_ALLOC_RULE_COLS_TMPL = {
         'Fiscal Allocation Sets',
         # TODO this probably might result in problems as templates do not have field company_id
         domain="[('company_id','=',company_id),('fiscal_domain_id','=',fiscal_domain_id)]", select=True),
-    # TODO Add account replacement on a per invoice line level with lateste-sequence-win conflict-resolution
+    'account_invoice_id': fields.many2ome('account.account', 'Account Replacement on Sales'),
+    'account_purchase_id': fields.many2ome('account.account', 'Account Replacement on Purchases')
 }
 
 ACC_FISC_ALLOC_RULE_DEFS_TMPL = {
@@ -136,7 +137,7 @@ class AccountFiscalAllocationRule(orm.Model):
     _columns = dict(chain(ACC_FISC_ALLOC_RULE_COLS_TMPL.items(), nontmpl_update_cols.items))
     _defaults = dict(chain(ACC_FISC_ALLOC_RULE_DEFS_TMPL.items(), nontmpl_update_defs.items))
 
-    def _map_domain(self, cr, uid, partner, addrs, company, product,
+    def _map_domain(self, cr, uid, partner, addrs, company, product=None,
                     context=None, **kwargs):
         if context is None:
             context = {}
@@ -154,7 +155,12 @@ class AccountFiscalAllocationRule(orm.Model):
             cr, uid, ('name','=', ATTR_USE_DOM_COMPANY), context=None
         )
         # Return list of the product Fiscal Attributes
-        # The search domain in product is optional unless the prouduct would be coded to recive mor AttributUse Domains.
+        # Search domain in product is optional unless the proudct would be coded to receive more AttributUse Domains.
+        # It is assured at the view level, that we don't have a rule that want's to alter an account, but has product
+        # attributes defined. (This rule would fail, as product is only passed form account.invoice.line,
+        # so the following matching list cannot be constructed on calls from account.invoice.
+        # Account alteration however takes place at the account.invoice level. We still want to write all rules into
+        # a single table. That's why the disctinction has to be made in a "soft" manner at the view lavel)
         if product:
             attributes_all += product.property_fiscal_attribute.search(
                 cr, uid, ('name','=', ATTR_USE_DOM_PRODUCT), context=None
@@ -206,51 +212,89 @@ class AccountFiscalAllocationRule(orm.Model):
         return domain
 
     def apply_fiscal_mapping(self, cr, uid, result, **kwargs):
-        result['value'].update(self.fiscal_allocation_map(cr, uid, **kwargs))
+        taxes = result['value']['invoice_line_tax_id']
+        result['value'].update(self.fiscal_allocation_map(cr, uid, taxes, **kwargs))
         return result
 
     def fiscal_allocation_map(self, cr, uid, partner_id=None,
                               partner_invoice_id=None, partner_shipping_id=None,
-                              company_id=None, product_id=None, context=None, **kwargs):
+                              company_id=None, product_id=None, account_id=None, context=None, **kwargs):
 
-        result = {'fiscal_allocation': False}
+        # TODO Maybe some update instead, to preserve product default taxes
+        result = {'invoice_line_tax_id': False, 'account_id': False}
         if not partner_id or not company_id:
             return result
 
-        obj_fsc_rule = self.pool.get('account.fiscal.allocation.rule')
+        # ##### Construct dictionary objects to be passed to the _map_domain method
 
         obj_partner = self.pool.get("res.partner")
         obj_company = self.pool.get("res.company")
         obj_product = self.pool.get("product.product")
-
         partner = obj_partner.browse(cr, uid, partner_id, context=context)
         company = obj_company.browse(cr, uid, company_id, context=context)
         product = obj_product.browse(cr, uid, product_id, context=context)
 
         addrs = {}
-        if partner_invoice_id:
-            addrs[ATTR_USE_DOM_PINVOICE] = obj_partner.browse(
+        addrs[ATTR_USE_DOM_PINVOICE] = partner_invoice_id and obj_partner.browse(
                 cr, uid, partner_invoice_id, context=context)
-
-        if partner_shipping_id:
-            addrs[ATTR_USE_DOM_PSHIPPER] = obj_partner.browse(
+        addrs[ATTR_USE_DOM_PSHIPPER] = partner_shipping_id and obj_partner.browse(
                 cr, uid, partner_shipping_id, context=context)
 
-        # Rule based determination
-        domain = self._map_domain(
-            cr, uid, partner, addrs, company, product, context, **kwargs)
+        # ##### Finished / Construct dictionary objects to be passed to the _map_domain method
 
-        fsc_alloc_id = self.search(cr, uid, domain, context=context)
+        # Construct a domain attribute within the _map_domain method
+        domain = self._map_domain(cr, uid, partner, addrs, company, product, context, **kwargs)
 
-        # TODO allow for multiple sets in the same domain to be allocated.
-        if fsc_alloc_id:
-            fsc_rule = obj_fsc_rule.browse(
-                cr, uid, fsc_alloc_id, context=context)[0]
-            result['fiscal_allocation'] = fsc_rule.fiscal_allocation_id.id
+        frule_obj = self.pool.get('account.fiscal.allocation.rule')
+        # Return a list with ids of all matching Fiscal Allocation Rules
+        frule_ids = self.search(cr, uid, domain, context=context)
+        # Return a dictionary containing all applicable Fiscall Allocation Rule
+        frules = frule_ids and frule_obj.browse(cr, uid, frule_ids, context=context) or False
+        # Pass applicable Fiscal Allocation Rules to the Fiscal Allocation mapa_tax method.
+        # Return an updated output dictionary with taxes stored in invoice_line_tax_id.
+        # See 'product_id_change' method in 'account.inovice.line' model in 'accont_invoice.py' of core account addon.
+        # TODO restrict search according to case for better performance, if possible.
+        # CASE: Called from the Invoice Line ('account.invoice.line')
+        if product_id:
+            falloc_obj =  self.pool.get('account.fiscal.allocation')
+            # This .update() is kind of a double floor, as existing taxes are also preserved in the map_tax method.
+            updated_taxes = frules and t['invoice_line_tax_id'].update(
+                falloc_obj.map_tax(cr, uid, frules, taxes, inv_type, context)
+                # TODO as date is probably not passed in context, load invoice date into the present context
+            ) or False
+            return updated_taxes
+        # CASE: Called from the Invoice itself ('account.invoice')
+        if account_id:
+            updated_account = frules and t['account_id'] = self._map_account(
+                cr, uid, frules, account_id, inv_type, context
+                # TODO as date is probably not passed in context, load invoice date into the present context
+            ) or False
+            return updated_account
 
-        return result
+        return False
 
-AccountFiscalAllocationRule()
+
+    def _map_account(self, cr, uid, frules, account_id, inv_type, context=None):
+
+        # Some ugly hack to get the corresponding rule with the highest sequence number only.
+        # TODO rise alert if sequence number is ambigous. -> adapt rules sequence numbers manually.
+        f_valid_sales_id = frules.search(
+            cr, uid, ('account_invoice_id', '!=', None) , offset=0, limit=1, order=sequence, context=context)
+        f_valid_purchase_id = frules.search(
+            cr, uid, ('account_purchase_id', '!=', None) , offset=0, limit=1, order=sequence, context=context)
+        # Get it as a dict, in order to access the account fields.
+        f_valid_sales  = frules.browse(cr, uid, f_valid_sales_id, context=context)
+        f_valid_purchase  = frules.browse(cr, uid, f_valid_purchase_id, context=context)
+
+        # CASE: Outgoing Invoice or a refund of such.
+        if inv_type in ('out_invoice','out_refund'):
+            account_id = f_valid_sales_id and f_valid_sales.account_invoice_id or False
+
+        # CASE: Incoming Invoice or a refund of such.
+        if inv_type in ('in_invoice', 'in_refund'):
+            account_id = f_valid_purchase_id and f_valid_purchase.account_purchase_id or False
+
+        return account_id
 
 # ---------------------------
 # Templates & Wizards Section
