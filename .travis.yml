@@ -10,7 +10,7 @@ python:
 #  - "2.6"  # not supported by odoo 8
 
 env:
-   - ODOO="https://github.com/Bubbles-IT/odoo/archive/saas-5.tar.gz"  # Temp until https://github.com/odoo/odoo/pull/81 is solved
+   - ODOO="https://github.com/savoirfairelinux/odoo/archive/setuptools-addons.tar.gz"  # Temp until https://github.com/odoo/odoo/pull/81 is solved
 #  - ODOO="https://github.com/odoo/odoo/archive/master.zip"
 #  - ODOO="ocb"
 
